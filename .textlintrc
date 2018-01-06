@@ -9,7 +9,8 @@
       "2.1.6.カタカナの長音": false,
       "2.2.1.ひらがなと漢字の使い分け": true
     },
-    "spellcheck-tech-word": true
+    "spellcheck-tech-word": true,
+    "@textlint-rule/no-invalid-control-character": true
   },
   "filters": {
     "comments": true
