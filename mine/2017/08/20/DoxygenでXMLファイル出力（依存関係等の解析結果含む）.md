@@ -1,4 +1,18 @@
-DoxygenでXMLファイル出力（依存関係等の解析結果含む）
+<!--
+id: 5d799758afa3c487e7b9
+url: https://qiita.com/tenmyo/items/5d799758afa3c487e7b9
+created_at: 2017-08-20T01:21:16+09:00
+updated_at: 2017-08-20T10:56:45+09:00
+private: false
+coediting: false
+tags:
+- doxygen
+- 静的解析
+team: null
+-->
+
+# DoxygenでXMLファイル出力（依存関係等の解析結果含む）
+
 # 導入
 自動ドキュメントツール[Doxygen](http://www.stack.nl/~dimitri/doxygen/index.html)。多くのプログラミング言語と出力形式に対応しているため、使ったことのある方も多いかと思います。
 

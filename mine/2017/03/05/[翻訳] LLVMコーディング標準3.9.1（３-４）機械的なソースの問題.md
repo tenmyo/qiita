@@ -1,4 +1,22 @@
-[翻訳] LLVMコーディング標準3.9.1（３/４）機械的なソースの問題
+<!--
+id: eb0fd21212ff0184e933
+url: https://qiita.com/tenmyo/items/eb0fd21212ff0184e933
+created_at: 2017-03-05T18:20:07+09:00
+updated_at: 2017-04-15T22:56:06+09:00
+private: false
+coediting: false
+tags:
+- C++11
+- LLVM:
+  - 3.9.1
+- 翻訳
+- コーディング規約
+- clang-format
+team: null
+-->
+
+# [翻訳] LLVMコーディング標準3.9.1（３/４）機械的なソースの問題
+
 この記事は、[LLVM Coding Standards](http://releases.llvm.org/3.9.1/docs/CodingStandards.html) 翻訳の３/４です。
 
 ----

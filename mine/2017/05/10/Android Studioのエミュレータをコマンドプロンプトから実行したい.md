@@ -1,4 +1,19 @@
-Android Studioのエミュレータをコマンドプロンプトから実行したい
+<!--
+id: f547806f128606ae22d3
+url: https://qiita.com/tenmyo/items/f547806f128606ae22d3
+created_at: 2017-05-10T22:53:15+09:00
+updated_at: 2017-05-10T22:56:29+09:00
+private: false
+coediting: false
+tags:
+- AndroidSDK
+- AndroidStudio
+- emulator
+team: null
+-->
+
+# Android Studioのエミュレータをコマンドプロンプトから実行したい
+
 
 AndroidのエミュレータにProxyとか設定したくて、コマンドプロンプト（やAndroid StudioのTerminal）から実行したいのですよ。
 ところがよく分からないエラーが出てしまうのです。

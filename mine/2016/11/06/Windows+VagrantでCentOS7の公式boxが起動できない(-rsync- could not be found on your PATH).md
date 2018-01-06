@@ -1,4 +1,20 @@
-Windows+VagrantでCentOS7の公式boxが起動できない("rsync" could not be found on your PATH)
+<!--
+id: c2bb714117c98ae979de
+url: https://qiita.com/tenmyo/items/c2bb714117c98ae979de
+created_at: 2016-11-06T17:25:58+09:00
+updated_at: 2017-09-26T22:27:39+09:00
+private: false
+coediting: false
+tags:
+- Windows
+- vagrant
+- Vagrantfile
+- centos7
+team: null
+-->
+
+# Windows+VagrantでCentOS7の公式boxが起動できない("rsync" could not be found on your PATH)
+
 # TL;DR
 [vagrant-vbguest](https://github.com/dotless-de/vagrant-vbguest)をインストール(`vagrant plugin install vagrant-vbguest`)して、Vagrantfileを`config.vm.synced_folder ".", "/vagrant", type: "virtualbox"`に書き換える。
 

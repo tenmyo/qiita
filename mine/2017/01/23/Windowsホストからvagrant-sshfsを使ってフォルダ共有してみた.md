@@ -1,4 +1,21 @@
-Windowsホストからvagrant-sshfsを使ってフォルダ共有してみた
+<!--
+id: deb19e4adde69dd4e3aa
+url: https://qiita.com/tenmyo/items/deb19e4adde69dd4e3aa
+created_at: 2017-01-23T01:11:47+09:00
+updated_at: 2017-01-25T09:13:22+09:00
+private: false
+coediting: false
+tags:
+- Windows
+- vagrant
+- sshfs
+- GitForWindows
+- vagrant-sshfs
+team: null
+-->
+
+# Windowsホストからvagrant-sshfsを使ってフォルダ共有してみた
+
 # やってみた
 [CentOSのブログで紹介](https://seven.centos.org/2016/12/updated-centos-vagrant-images-available-v1611-01/)されていたので、[vagrant-sshfs](https://github.com/dustymabe/vagrant-sshfs)を入れてみました。
 CentOSさん的にはVirtualBoxの共有フォルダよりも、NFSやsshfsを推奨しているようです。

@@ -1,4 +1,19 @@
-C言語でマルチプラットフォーム対応のコンストラクタ処理（MSVCでの__attribute__((constructor))相当など）
+<!--
+id: c3dd91af04d10d185a9a
+url: https://qiita.com/tenmyo/items/c3dd91af04d10d185a9a
+created_at: 2016-12-21T16:15:23+09:00
+updated_at: 2016-12-21T16:17:59+09:00
+private: false
+coediting: false
+tags:
+- GCC
+- C言語
+- MSVC
+team: null
+-->
+
+# C言語でマルチプラットフォーム対応のコンストラクタ処理（MSVCでの__attribute__((constructor))相当など）
+
 # 背景
 　最近いじっているCのソフトに、マルチプラットフォーム対応の静的なプラグイン機構[^1]をつけたくて、明示的に呼ばずに初期化処理を走らせる方法をいろいろ調べてみました。
 　なおDLLやSOなどはエントリポイントがあるのでそちらを使ってもよいと思います。

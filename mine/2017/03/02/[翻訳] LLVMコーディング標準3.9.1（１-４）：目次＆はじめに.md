@@ -1,4 +1,23 @@
-[翻訳] LLVMコーディング標準3.9.1（１/４）：目次＆はじめに
+<!--
+id: 5d9fae50d941655350ca
+url: https://qiita.com/tenmyo/items/5d9fae50d941655350ca
+created_at: 2017-03-02T23:23:12+09:00
+updated_at: 2017-04-15T22:30:48+09:00
+private: false
+coediting: false
+tags:
+- C++:
+  - "11"
+- LLVM:
+  - 3.9.1
+- 翻訳
+- コーディング規約
+- clang-format
+team: null
+-->
+
+# [翻訳] LLVMコーディング標準3.9.1（１/４）：目次＆はじめに
+
 コード整形には`clang-format`がいいらしい
 　→ベーススタイルの１つとして、LLVM coding standardsがある
 　　→先進的な感じに憧れるが、日本語資料が無い

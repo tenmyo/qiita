@@ -1,4 +1,22 @@
-[翻訳] LLVMコーディング標準3.9.1（２/４）：言語、ライブラリ、および標準
+<!--
+id: e1194d8093b7a79abd5f
+url: https://qiita.com/tenmyo/items/e1194d8093b7a79abd5f
+created_at: 2017-03-02T23:35:41+09:00
+updated_at: 2017-03-11T23:52:14+09:00
+private: false
+coediting: false
+tags:
+- C++11
+- LLVM:
+  - 3.9.1
+- 翻訳
+- コーディング規約
+- clang-format
+team: null
+-->
+
+# [翻訳] LLVMコーディング標準3.9.1（２/４）：言語、ライブラリ、および標準
+
 この記事は、[LLVM Coding Standards](http://releases.llvm.org/3.9.1/docs/CodingStandards.html) 翻訳の２/４です。
 
 ----

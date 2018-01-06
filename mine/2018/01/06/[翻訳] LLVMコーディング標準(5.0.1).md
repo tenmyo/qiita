@@ -1,3 +1,23 @@
+<!--
+id: 7e4847b88e63d5769dd8
+url: https://qiita.com/tenmyo/items/7e4847b88e63d5769dd8
+created_at: 2018-01-06T15:19:28+09:00
+updated_at: 2018-01-06T15:19:28+09:00
+private: false
+coediting: false
+tags:
+- C++:
+  - "11"
+- LLVM:
+  - 5.0.1
+- 翻訳
+- コーディング規約
+- clang-format
+team: null
+-->
+
+# [翻訳] LLVMコーディング標準(5.0.1)
+
 # LLVMコーディング標準
 
 LLVMはきれいな設計のコンパイラ基盤で、近年急速に普及が進んでいます。LLVMの一部としてリリースされているコンパイラ`clang`は、macOSやiOS、FreeBSD、OpenBSDの標準コンパイラとして採用されています。

@@ -1,4 +1,22 @@
-[翻訳] LLVMコーディング標準3.9.1（４/４）：スタイルの問題
+<!--
+id: c452c5c527b743d4b96e
+url: https://qiita.com/tenmyo/items/c452c5c527b743d4b96e
+created_at: 2017-03-11T23:49:00+09:00
+updated_at: 2017-04-15T23:06:50+09:00
+private: false
+coediting: false
+tags:
+- C++11
+- LLVM:
+  - 3.9.1
+- 翻訳
+- コーディング規約
+- clang-format
+team: null
+-->
+
+# [翻訳] LLVMコーディング標準3.9.1（４/４）：スタイルの問題
+
 この記事は、[LLVM Coding Standards](http://releases.llvm.org/3.9.1/docs/CodingStandards.html) 翻訳の４/４です。
 
 ----
