@@ -1,0 +1,18 @@
+{
+  "rules": {
+    "preset-ja-technical-writing": {
+      "no-exclamation-question-mark": false
+    },
+    "preset-jtf-style": {
+      "2.1.2.漢字": true,
+      "2.1.5.カタカナ": false,
+      "2.1.6.カタカナの長音": false,
+      "2.2.1.ひらがなと漢字の使い分け": true
+    },
+    "spellcheck-tech-word": true
+  },
+  "filters": {
+    "comments": true
+  }
+}
+
