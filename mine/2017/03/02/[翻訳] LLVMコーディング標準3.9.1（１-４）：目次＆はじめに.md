@@ -2,7 +2,7 @@
 id: 5d9fae50d941655350ca
 url: https://qiita.com/tenmyo/items/5d9fae50d941655350ca
 created_at: 2017-03-02T23:23:12+09:00
-updated_at: 2017-04-15T22:30:48+09:00
+updated_at: 2018-01-06T16:01:52+09:00
 private: false
 coediting: false
 tags:
@@ -25,7 +25,7 @@ team: null
 ということで、LLVM coding standardsを翻訳してみました。
 LLVM3.9.1版のドキュメントを元にしています。
 
-だいぶ文章がくどく、また4.0でも更新が入っているため、近々意訳＆更新版を投稿する予定です。
+[新版対応はこちら](//qiita.com/tenmyo/items/7e4847b88e63d5769dd8)
 
 
 LLVMコーディング標準
