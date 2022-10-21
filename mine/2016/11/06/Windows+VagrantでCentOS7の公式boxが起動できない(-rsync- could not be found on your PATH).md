@@ -7,7 +7,7 @@ private: false
 coediting: false
 tags:
 - Windows
-- vagrant
+- Vagrant
 - Vagrantfile
 - centos7
 team: null

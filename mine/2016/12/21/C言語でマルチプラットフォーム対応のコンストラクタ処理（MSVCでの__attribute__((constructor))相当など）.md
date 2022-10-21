@@ -6,8 +6,8 @@ updated_at: 2016-12-21T16:17:59+09:00
 private: false
 coediting: false
 tags:
+- C
 - GCC
-- C言語
 - MSVC
 team: null
 -->

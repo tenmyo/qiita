@@ -2,36 +2,92 @@
 id: 7e4847b88e63d5769dd8
 url: https://qiita.com/tenmyo/items/7e4847b88e63d5769dd8
 created_at: 2018-01-06T15:19:28+09:00
-updated_at: 2018-01-06T15:19:28+09:00
+updated_at: 2018-06-15T23:09:05+09:00
 private: false
 coediting: false
 tags:
 - C++:
   - "11"
-- LLVM:
-  - 5.0.1
+- LLVM
 - 翻訳
 - コーディング規約
 - clang-format
 team: null
 -->
 
-# [翻訳] LLVMコーディング標準(5.0.1)
+# [翻訳] LLVMコーディング標準(6.0.0)
 
 # LLVMコーディング標準
 
 LLVMはきれいな設計のコンパイラ基盤で、近年急速に普及が進んでいます。LLVMの一部としてリリースされているコンパイラ`clang`は、macOSやiOS、FreeBSD、OpenBSDの標準コンパイラとして採用されています。
 
-本記事は、LLVMプロジェクトで用いられているコーディング標準（[LLVM Coding Standards](http://releases.llvm.org/5.0.1/docs/CodingStandards.html)）について、原文を読みながらまとめたメモです。原文の翻訳が主ですが、センテンスを一部消したり、補ったりしています。章立てはいじっていません。
-随時最新版に追従する予定です。現在は5.0.1版に基づいています。
+本記事は、LLVMプロジェクトで用いられているコーディング標準（[LLVM Coding Standards](http://releases.llvm.org/6.0.0/docs/CodingStandards.html)）について、原文を読みながらまとめたメモです。原文の翻訳が主ですが、センテンスを一部消したり、補ったりしています。章立てはいじっていません。
+随時最新版に追従する予定です。現在は6.0.0版に基づいています。
 
 解釈誤りや分かりづらさの指摘は、コメントや編集リクエストでいただけたら幸いです。
-内容に関する質問もなるべく回答したいですが、C++力があまりないため、お力になれない場合があります。
 
 [原文のcurrent版はこちら](http://llvm.org/docs/CodingStandards.html)
 
-<!--
+## 目次
 
+- [はじめに](#はじめに)
+    - [言語、ライブラリ、および標準](#言語ライブラリおよび標準)
+    - [C++標準のバージョン](#c標準のバージョン)
+    - [C++標準ライブラリ](#c標準ライブラリ)
+    - [利用するC++11言語とライブラリの機能](#利用するc11言語とライブラリの機能)
+    - [その他の言語](#その他の言語)
+- [機械的なソースの問題](#機械的なソースの問題)
+    - [ソースコードのフォーマット](#ソースコードのフォーマット)
+        - [コメント](#コメント)
+            - [ファイルのヘッダ](#ファイルのヘッダ)
+            - [クラス概要](#クラス概要)
+            - [メソッド情報](#メソッド情報)
+        - [コメント書式](#コメント書式)
+        - [ドキュメントコメントでのDoxygenの使用](#ドキュメントコメントでのdoxygenの使用)
+        - [`#include`の形式](#includeの形式)
+        - [ソースコードの幅](#ソースコードの幅)
+        - [タブの代わりにスペースを使う](#タブの代わりにスペースを使う)
+        - [インデントの一貫](#インデントの一貫)
+            - [ラムダはコードブロックと同様に整形](#ラムダはコードブロックと同様に整形)
+            - [ブレース初期化子リスト](#ブレース初期化子リスト)
+    - [言語とコンパイラの問題](#言語とコンパイラの問題)
+        - [コンパイラ警告はエラーと同様に扱う](#コンパイラ警告はエラーと同様に扱う)
+        - [移植可能なコードを書く](#移植可能なコードを書く)
+        - [RTTIや例外を使わない](#rttiや例外を使わない)
+        - [静的コンストラクタを使わない](#静的コンストラクタを使わない)
+        - [`class`と`struct`キーワードの使い方](#classとstructキーワードの使い方)
+        - [ブレース初期化子リストはコンストラクタ呼び出しに使わない](#ブレース初期化子リストはコンストラクタ呼び出しに使わない)
+        - [コードを読みやすくするために`auto`型推論を使う](#コードを読みやすくするためにauto型推論を使う)
+        - [`auto`での不必要なコピーに注意](#autoでの不必要なコピーに注意)
+        - [ポインタ順序による非決定性に注意](#ポインタ順序による非決定性に注意)
+- [スタイルの問題](#スタイルの問題)
+    - [高位の問題](#高位の問題)
+        - [公開ヘッダファイル **は** モジュール](#公開ヘッダファイル-は-モジュール)
+        - [`#include`は最低限に](#includeは最低限に)
+        - [「内部」ヘッダは非公開](#内部ヘッダは非公開)
+        - [早期終了と`continue`でコードをシンプルに](#早期終了とcontinueでコードをシンプルに)
+        - [`return`後に`else`を使用しない](#return後にelseを使用しない)
+        - [Predicateはループから関数へ](#predicateはループから関数へ)
+    - [低位の問題](#低位の問題)
+        - [型、関数、変数、および列挙子への適切な命名](#型関数変数および列挙子への適切な命名)
+        - [たっぷりのアサート](#たっぷりのアサート)
+        - [`using namespace std`を使わない](#using-namespace-stdを使わない)
+        - [ヘッダ内クラスは仮想メソッドアンカーを提供する](#ヘッダ内クラスは仮想メソッドアンカーを提供する)
+        - [列挙型を網羅したswitchにdefaultを使わない](#列挙型を網羅したswitchにdefaultを使わない)
+        - [できるだけrange-based ``for``ループを使う](#できるだけrange-based-forループを使う)
+        - [ループで毎回`end()`を評価しない](#ループで毎回endを評価しない)
+        - [`#include <iostream>`禁止](#include-iostream禁止)
+        - [`raw_ostream`を使う](#raw_ostreamを使う)
+        - [`std::endl`を避ける](#stdendlを避ける)
+        - [クラス定義内の関数定義で`inline`を使わない](#クラス定義内の関数定義でinlineを使わない)
+    - [細かい話](#細かい話)
+        - [括弧の前にスペース](#括弧の前にスペース)
+        - [前置インクリメントの選好](#前置インクリメントの選好)
+        - [名前空間のインデント](#名前空間のインデント)
+        - [無名名前空間](#無名名前空間)
+- [関連項目](#関連項目)
+
+<!--
 Introduction
 ============
 
@@ -171,7 +227,7 @@ unlikely to be supported by our host compilers.
 
 ### 利用するC++11言語とライブラリの機能
 
-LLVM内で用いるのは、C++11のうち[Getting Started with the LLVM System](http://releases.llvm.org/5.0.1/docs/GettingStarted.html)に記載された最小要件上でサポートされる機能に限ります。LLVM5.0.1では、Clang 3.1、GCC 4.8、Visual Studio 2015(Update3)です。最終的な定義は「要件の各ツールチェインでビルド可能であること」ですが、いくつか指針を示します。
+LLVM内で用いるのは、C++11のうち[Getting Started with the LLVM System](http://releases.llvm.org/6.0.0/docs/GettingStarted.html)に記載された最小要件上でサポートされる機能に限ります。LLVM6.0.0では、Clang 3.1、GCC 4.8、Visual Studio 2015(Update3)です。最終的な定義は「要件の各ツールチェインでビルド可能であること」ですが、いくつか指針を示します。
 
 どのツールチェインも、サポートする言語機能の良い資料を提供しています。
 
@@ -331,14 +387,14 @@ this means are `Effective Go`_ and `Go Code Review Comments`_.
   https://golang.org/doc/effective_go.html
 
 .. _Go Code Review Comments:
-  https://code.google.com/p/go-wiki/wiki/CodeReviewComments
+  https://github.com/golang/go/wiki/CodeReviewComments
 -->
 
 ### その他の言語
 
 Go言語で記述されたコードは、以降の書式ルールの対象にはなりません。その代わりに、 [gofmt](https://golang.org/cmd/gofmt/) ツールによる整形を採用しています。
 
-Goコードは慣習に倣うよう努めてください。[Effective Go](https://golang.org/doc/effective_go.html) および [Go Code Review Comments](https://code.google.com/p/go-wiki/wiki/CodeReviewComments) [^2]の2つが良いガイドラインとなります。
+Goコードは慣習に倣うよう努めてください。[Effective Go](https://golang.org/doc/effective_go.html) および [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments) [^2]の2つが良いガイドラインとなります。
 
 [^2]: 翻訳記事：[#golang CodeReviewComments 日本語翻訳](http://qiita.com/knsh14/items/8b73b31822c109d4c497)
 
@@ -1110,7 +1166,7 @@ substantially more efficient than ``dynamic_cast<>``.
 
 コードと実行ファイルのサイズを減らすために、LLVMはRTTI（例えば`dynamic_cast<>`）や例外を使いません。これら2つの言語機能は、一般的なC++の **「従量課金」** 原則に反して実行ファイルの膨張を引き起こします。たとえ例外がコードで使われなかったり、RTTIがクラスで使われなかったとしてもです。このため、私たちはコード全体でそれらを無効にします。
 
-LLVMはRTTIを手で展開した[isa<>、cast<>、そしてdyn_cast<>](http://releases.llvm.org/5.0.1/docs/ProgrammersManual.html#isa) のようなテンプレートを広く用います。RTTIのこの形式は、[任意のクラス](http://releases.llvm.org/5.0.1/docs/HowToSetUpLLVMStyleRTTI.html)にオプトインで追加できます。これらはおおむね`dynamic_cast<>`よりも効率的です。
+LLVMはRTTIを手で展開した[isa<>、cast<>、そしてdyn_cast<>](http://releases.llvm.org/6.0.0/docs/ProgrammersManual.html#isa) のようなテンプレートを広く用います。RTTIのこの形式は、[任意のクラス](http://releases.llvm.org/6.0.0/docs/HowToSetUpLLVMStyleRTTI.html)にオプトインで追加できます。これらはおおむね`dynamic_cast<>`よりも効率的です。
 
 <!--
 .. _static constructor:
@@ -1385,6 +1441,29 @@ for (auto *Ptr : Container) { Ptr->change(); }
 ```
 
 <!--
+Beware of non-determinism due to ordering of pointers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In general, there is no relative ordering among pointers. As a result,
+when unordered containers like sets and maps are used with pointer keys
+the iteration order is undefined. Hence, iterating such containers may
+result in non-deterministic code generation. While the generated code
+might not necessarily be "wrong code", this non-determinism might result
+in unexpected runtime crashes or simply hard to reproduce bugs on the
+customer side making it harder to debug and fix.
+
+As a rule of thumb, in case an ordered result is expected, remember to
+sort an unordered container before iteration. Or use ordered containers
+like vector/MapVector/SetVector if you want to iterate pointer keys.
+-->
+
+#### ポインタ順序による非決定性に注意
+
+一般に、ポインタ同士に順序はありません。その結果、setやmapのように順序のないコンテナで、キーにポインタが使われる場合、反復(iteration)順序は未定義です。したがって、そのようなコンテナの反復は結果として非決定的なコードが生成されます（訳注：実行毎に順序が変わりうる）。必ずしも「間違ったコード」とは限りませんが、予期しないクラッシュを招いたり、再現しないバグを生じるなどして、デバッグを難しくします。
+
+経験則として、順序ある結果を期待する場合は、順序なしコンテナの反復前にはソートを欠かさないでください。それか、ポインタキーを反復したいならvector/MapVector/SetVectorのような順序付きコンテナを使います。
+
+<!--
 
 Style Issues
 ============
@@ -1597,8 +1676,8 @@ loops.  A silly example is something like this:
 
 .. code-block:: c++
 
-  for (BasicBlock::iterator II = BB->begin(), E = BB->end(); II != E; ++II) {
-    if (BinaryOperator *BO = dyn_cast<BinaryOperator>(II)) {
+  for (Instruction &I : BB) {
+    if (auto *BO = dyn_cast<BinaryOperator>(&I)) {
       Value *LHS = BO->getOperand(0);
       Value *RHS = BO->getOperand(1);
       if (LHS != RHS) {
@@ -1611,8 +1690,8 @@ loops.  A silly example is something like this:
 同様の問題は`for`ループで頻繁に起きます。愚かな例を示します。
 
 ```cpp:愚かな例
-for (BasicBlock::iterator II = BB->begin(), E = BB->end(); II != E; ++II) {
-  if (BinaryOperator *BO = dyn_cast<BinaryOperator>(II)) {
+for (Instruction &I : BB) {
+  if (auto *BO = dyn_cast<BinaryOperator>(&I)) {
     Value *LHS = BO->getOperand(0);
     Value *RHS = BO->getOperand(1);
     if (LHS != RHS) {
@@ -1633,8 +1712,8 @@ It is strongly preferred to structure the loop like this:
 
 .. code-block:: c++
 
-  for (BasicBlock::iterator II = BB->begin(), E = BB->end(); II != E; ++II) {
-    BinaryOperator *BO = dyn_cast<BinaryOperator>(II);
+  for (Instruction &I : BB) {
+    auto *BO = dyn_cast<BinaryOperator>(&I);
     if (!BO) continue;
 
     Value *LHS = BO->getOperand(0);
@@ -1648,8 +1727,8 @@ It is strongly preferred to structure the loop like this:
 非常に小さなループでは、この構造の問題はありません。10〜15行を超えた場合、一目で理解することは困難になります。この種のコードの問題は、あっという間にネストされてしまうことです。それはコードの読み手は、ループ内で何が行われているか把握するために、非常に多くのコンテキストを覚えておかなくてはならないことを意味します。なぜなら、彼らは`if`条件に`else`等があるかどうかを知りません。次のようなループを構成することが望ましいです。
 
 ```cpp:良い例
-for (BasicBlock::iterator II = BB->begin(), E = BB->end(); II != E; ++II) {
-  BinaryOperator *BO = dyn_cast<BinaryOperator>(II);
+for (Instruction &I : BB) {
+  auto *BO = dyn_cast<BinaryOperator>(&I);
   if (!BO) continue;
 
   Value *LHS = BO->getOperand(0);
@@ -1752,7 +1831,7 @@ It is better to write it like this:
 
 次のように書く方が良いです。
 
-```cpp::好ましい例
+```cpp:好ましい例
 case 'J':
   if (Signed) {
     Type = Context.getsigjmp_bufType();
@@ -2127,6 +2206,16 @@ llvm_unreachable("Invalid radix for integer literal");
 アサーションを有効にすると、ここに到達した時点でメッセージを表示し、プログラムを終了します。アサーションが無効になっている場合（つまりリリースビルドでは）、`llvm_unreachable`はこの分岐のコード生成は省略可能だというコンパイラへのヒントとなります。コンパイラがこれをサポートしていない場合は、「abort」実装にフォールバックされます。
 
 <!--
+Neither assertions or ``llvm_unreachable`` will abort the program on a release
+build. If the error condition can be triggered by user input then the
+recoverable error mechanism described in :doc:`ProgrammersManual` should be
+used instead. In cases where this is not practical, ``report_fatal_error`` may
+be used.
+-->
+
+アサーションも``llvm_unreachable``も、リリースビルドではプログラムをabortしません。もしユーザの入力によりエラー状態となりうる場合、[LLVM Programmer’s Manual](http://releases.llvm.org/6.0.0/docs/ProgrammersManual.html)にある回復可能なエラーメカニズムを使う必要があります。それが実用的でないような場合は、``report_fatal_error``を使います。
+
+<!--
 Another issue is that values used only by assertions will produce an "unused
 value" warning when assertions are disabled.  For example, this code will warn:
 
@@ -2263,21 +2352,58 @@ the switch.
 この影響で、列挙型を網羅したswitchの各caseでreturnしていた場合、GCCでビルドすると「コントロールが非void型関数の終わりに到達します」関連の警告が出ます。GCCはenum句が個々の列挙子だけでなく任意の値を取れることを前提としているためです。この警告を抑止するには、switchの後に`llvm_unreachable`を使います。
 
 <!--
-Don't evaluate ``end()`` every time through a loop
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Use range-based ``for`` loops wherever possible
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Because C++ doesn't have a standard "``foreach``" loop (though it can be
-emulated with macros and may be coming in C++'0x) we end up writing a lot of
-loops that manually iterate from begin to end on a variety of containers or
-through other data structures.  One common mistake is to write a loop in this
-style:
+The introduction of range-based ``for`` loops in C++11 means that explicit
+manipulation of iterators is rarely necessary. We use range-based ``for``
+loops wherever possible for all newly added code. For example:
 
 .. code-block:: c++
 
   BasicBlock *BB = ...
-  for (BasicBlock::iterator I = BB->begin(); I != BB->end(); ++I)
+  for (Instruction &I : *BB)
     ... use I ...
+-->
 
+#### できるだけrange-based ``for``ループを使う
+
+C++11でのrange-based ``for``ループの導入は、イテレータの明示的操作がめったに要らないことを意味します。私達は、すべての新規追加コードに対して、できるだけrange-based ``for``ループを使います。
+
+```cpp
+BasicBlock *BB = ...
+for (Instruction &I : *BB)
+  ... use I ...
+```
+
+<!--
+Don't evaluate ``end()`` every time through a loop
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In cases where range-based ``for`` loops can't be used and it is necessary
+to write an explicit iterator-based loop, pay close attention to whether
+``end()`` is re-evaluted on each loop iteration. One common mistake is to
+write a loop in this style:
+
+.. code-block:: c++
+
+  BasicBlock *BB = ...
+  for (auto I = BB->begin(); I != BB->end(); ++I)
+    ... use I ...
+-->
+
+#### ループで毎回`end()`を評価しない
+
+range-based ``for``ループが使えず、イテレータを明示するループを書かざるを得ない場合、毎ループ``end()``が再評価されるかどうか細心の注意を払ってください。
+よくある間違いは、このようなスタイルで書くことです。
+
+```cpp:悪いループスタイル
+BasicBlock *BB = ...
+for (auto I = BB->begin(); I != BB->end(); ++I)
+  ... use I ...
+```
+
+<!--
 The problem with this construct is that it evaluates "``BB->end()``" every time
 through the loop.  Instead of writing the loop like this, we strongly prefer
 loops to be written so that they evaluate it once before the loop starts.  A
@@ -2286,16 +2412,30 @@ convenient way to do this is like so:
 .. code-block:: c++
 
   BasicBlock *BB = ...
-  for (BasicBlock::iterator I = BB->begin(), E = BB->end(); I != E; ++I)
+  for (auto I = BB->begin(), E = BB->end(); I != E; ++I)
     ... use I ...
+-->
 
+この構造の問題は、ループ毎に"``BB->end()``"が評価されてしまうことです。このようなループではなく、ループ前に一度だけ評価するような書き方を強くお勧めします。
+
+```cpp:ループ前に一度だけ評価する便利な方法
+BasicBlock *BB = ...
+for (auto I = BB->begin(), E = BB->end(); I != E; ++I)
+  ... use I ...
+```
+
+<!--
 The observant may quickly point out that these two loops may have different
 semantics: if the container (a basic block in this case) is being mutated, then
 "``BB->end()``" may change its value every time through the loop and the second
 loop may not in fact be correct.  If you actually do depend on this behavior,
 please write the loop in the first form and add a comment indicating that you
 did it intentionally.
+-->
 
+注意深い方は、これら２つのループが異なるセマンティクスを持つ可能性にお気づきかもしれません。もしコンテナ（この例ではBasicBlock)が変更されるとしたら、"``BB->end()``"はループ毎に変わるかもしれず、２つ目のループ(訳注：事前評価)は正しくないかもしれません。実際そのような挙動に依存している場合は、最初の形式でループを書き、「意図的に毎ループ評価している」旨コメント追加してください。
+
+<!--
 Why do we prefer the second form (when correct)?  Writing the loop in the first
 form has two problems. First it may be less efficient than evaluating it at the
 start of the loop.  In this case, the cost is probably minor --- a few extra
@@ -2304,7 +2444,11 @@ complex, then the cost can rise quickly.  I've seen loops where the end
 expression was actually something like: "``SomeMap[X]->end()``" and map lookups
 really aren't cheap.  By writing it in the second form consistently, you
 eliminate the issue entirely and don't even have to think about it.
+-->
 
+なぜ２つ目の形式がよいのか（正しい場合）？　最初の形式でループを書くことには２つの問題があります。第一に、ループ開始時に評価する方法と比べ、非効率かもしれません。この例では、コストはおそらくわずかですが、ループ毎に少し余分な負荷があります。しかしもっと複雑な式になると、コストが急上昇するかもしれません。"``SomeMap[X]->end()``"のような式を見たことがあります。mapのルックアップは決して安くありません。２つ目の書き方を一貫することで、問題を完全に排除でき、考えずに済みます。
+
+<!--
 The second (even bigger) issue is that writing the loop in the first form hints
 to the reader that the loop is mutating the container (a fact that a comment
 would handily confirm!).  If you write the loop in the second form, it is
@@ -2316,9 +2460,9 @@ While the second form of the loop is a few extra keystrokes, we do strongly
 prefer it.
 -->
 
-#### ループで毎回`end()`を評価しない
+さらに大きな第二の問題は、最初の形式で書くことはループ内でコンテナを変更していることを示すということです（コメントは簡単な確認という事実！）。２つ目の形式でループを書くと、コンテナが変更されないことがループ内を見ずとも分かります。
 
-現在ではC++11（範囲によるforループを含む）を採用しているため、この節は当てはまりません。記載の更新漏れだと思います。
+２つ目の形式でのループは余分なキータイプはありますが、強くおすすめします。
 
 <!--
 ``#include <iostream>`` is Forbidden
@@ -2800,4 +2944,16 @@ something.
 
 1. [Effective C++](http://www.amazon.com/Effective-Specific-Addison-Wesley-Professional-Computing/dp/0321334876) by Scott Meyers.同じ著者による「More Effective C++」「Effective STL」もまた、興味深く有用です。
 1. [Large-Scale C++ Software Design](http://www.amazon.com/Large-Scale-Software-Design-John-Lakos/dp/0201633620/ref=sr_1_1) by John Lakos
+
+
+## 原文の変更履歴
+
+### 5.0.1 -> 6.0.0の変更
+
+- はじめに＞その他の言語　Go Code Review Commentsのリンク先変更
+- 機械的なソースの問題＞言語とコンパイラの問題＞ポインタ順序による非決定性に注意　追加
+- スタイルの問題＞高位の問題＞早期終了と`continue`でコードをシンプルに　コードがシンプルに(range-based for, auto)
+- スタイルの問題＞低位の問題＞たっぷりのアサート　エラーの回復について追加
+- スタイルの問題＞低位の問題＞できるだけrange-based ``for``ループを使う　追加
+- スタイルの問題＞低位の問題＞ループで毎回`end()`を評価しない　文言変更
 

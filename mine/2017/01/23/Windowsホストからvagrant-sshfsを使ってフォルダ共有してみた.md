@@ -7,7 +7,7 @@ private: false
 coediting: false
 tags:
 - Windows
-- vagrant
+- Vagrant
 - sshfs
 - GitForWindows
 - vagrant-sshfs
