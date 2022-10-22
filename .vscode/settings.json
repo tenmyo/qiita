@@ -1,0 +1,26 @@
+{
+  "[markdown]": {
+    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
+    // "editor.unicodeHighlight.ambiguousCharacters": false,
+    // "editor.unicodeHighlight.invisibleCharacters": false,
+    // "editor.wordWrap": "on",
+    // "editor.quickSuggestions": {
+    //     "comments": "off",
+    //     "strings": "off",
+    //     "other": "off"
+    // },
+    // "bracketLens.mode": "manual",
+    // "cSpell.fixSpellingWithRenameProvider": true,
+    // "cSpell.advanced.feature.useReferenceProviderWithRename": true,
+    // "cSpell.advanced.feature.useReferenceProviderRemove": "/^#+\\s/"
+  },
+  "workbench.colorCustomizations": {
+    "[Default Dark+]": {
+      "editor.background": "#333",
+      "sideBar.background": "#444",
+      "statusBar.background": "#56C501"
+    }
+  },
+"editor.defaultFormatter": "esbenp.prettier-vscode",
+"editor.formatOnSave": true
+}
