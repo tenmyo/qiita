@@ -1,19 +1,9 @@
-version: '3'
+version: "3"
 
 services:
   qiita:
-    # image: mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18
-    # Using a Dockerfile is optional, but included for completeness.
-    build: 
-      context: ..
-      dockerfile: .devcontainer/Dockerfile
-      # [Optional] You can use build args to set options. e.g. 'VARIANT' below affects the image in the Dockerfile
-      # args: 
-      #   VARIANT: 16-bullseye
+    image: mcr.microsoft.com/vscode/devcontainers/javascript-node:0-18
     volumes:
-      - ..:/workspace
-      - node_modules:/workspace/node_modules
-    command: /bin/sh -c "while sleep 1000; do :; done"
-
-volumes:
-  node_modules:
+      - ..:/workspace:delegated
+      - /workspace/node_modules
+    command: sleep infinity
