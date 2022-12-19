@@ -1,0 +1,26 @@
+{
+  "version": "0.2",
+  "ignorePaths": [".devcontainer"],
+  "dictionaryDefinitions": [
+    {
+      "name": "cpp-dictionary",
+      "path": "./.cspell/cpp-dictionary.cspell",
+      "addWords": true
+    },
+    {
+      "name": "tool-dictionary",
+      "path": "./.cspell/tool-dictionary.cspell",
+      "addWords": true
+    },
+    {
+      "name": "buzz-dictionary",
+      "path": "./.cspell/buzz-dictionary.cspell",
+      "addWords": true
+    }
+  ],
+  "dictionaries": ["cpp-dictionary", "tool-dictionary", "buzz-dictionary"],
+  "words": ["behaviour", "coediting"],
+  "ignoreWords": [],
+  "import": [],
+  "allowCompoundWords": true
+}
