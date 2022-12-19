@@ -2,7 +2,7 @@
 id: 7e4847b88e63d5769dd8
 url: https://qiita.com/tenmyo/items/7e4847b88e63d5769dd8
 created_at: 2018-01-06T15:19:28+09:00
-updated_at: 2022-10-22T22:42:24+09:00
+updated_at: 2022-12-19T22:26:58+09:00
 private: false
 coediting: false
 tags:
@@ -14,82 +14,31 @@ tags:
 team: null
 -->
 
-# [翻訳] LLVMコーディング標準(6.0.0)
+# [翻訳] LLVMコーディング標準(7.0.0)
 
 # LLVMコーディング標準
+LLVMは主にC++で実装されたコンパイラ基盤です。
+近年急速に普及が進んでおり、RustやSwiftのバックエンドとしても利用されています。
+LLVMの一部としてリリースされているCファミリーのコンパイラ`Clang`は、macOSやiOS、FreeBSD、OpenBSDの標準コンパイラとして採用されています。
 
-LLVMはきれいな設計のコンパイラ基盤で、近年急速に普及が進んでいます。LLVMの一部としてリリースされているコンパイラ`clang`は、macOSやiOS、FreeBSD、OpenBSDの標準コンパイラとして採用されています。
+本記事は、LLVMプロジェクトで用いられているコーディング標準（LLVM Coding Standards）のざっくり日本語訳です。
+「組織内でのコーディング規約作成の参考にしたい」「フォーマッタでLLVMスタイルが指定できるが、その内容を知りたい」といった読者を想定しています。
+そのため、LLVMプロジェクト自体へ関わる方法（連絡先メールアドレス）などについては一部記載を省いています。必要な方は原文を参照してください。
 
-本記事は、LLVMプロジェクトで用いられているコーディング標準（[LLVM Coding Standards](http://releases.llvm.org/6.0.0/docs/CodingStandards.html)）について、原文を読みながらまとめたメモです。原文の翻訳が主ですが、センテンスを一部消したり、補ったりしています。章立てはいじっていません。
-随時最新版に追従する予定です。現在は6.0.0版に基づいています。
+LLVMのメジャーリリースに合わせてこの記事も更新していく予定です。現在は[7.0.0版](https://releases.llvm.org/7.0.0/docs/CodingStandards.html)に基づいています。
 
 解釈誤りや分かりづらさの指摘は、コメントや編集リクエストでいただけたら幸いです。
 
-[原文のcurrent版はこちら](http://llvm.org/docs/CodingStandards.html)
-
-## 目次
-
-- [はじめに](#はじめに)
-  - [言語、ライブラリ、および標準](#言語ライブラリおよび標準)
-  - [C++標準のバージョン](#c標準のバージョン)
-  - [C++標準ライブラリ](#c標準ライブラリ)
-  - [利用するC++11言語とライブラリの機能](#利用するc11言語とライブラリの機能)
-  - [その他の言語](#その他の言語)
-- [機械的なソースの問題](#機械的なソースの問題)
-  - [ソースコードのフォーマット](#ソースコードのフォーマット)
-    - [コメント](#コメント)
-      - [ファイルのヘッダ](#ファイルのヘッダ)
-      - [クラス概要](#クラス概要)
-      - [メソッド情報](#メソッド情報)
-    - [コメント書式](#コメント書式)
-    - [ドキュメントコメントでのDoxygenの使用](#ドキュメントコメントでのdoxygenの使用)
-    - [`#include`の形式](#includeの形式)
-    - [ソースコードの幅](#ソースコードの幅)
-    - [タブの代わりにスペースを使う](#タブの代わりにスペースを使う)
-    - [インデントの一貫](#インデントの一貫)
-      - [ラムダはコードブロックと同様に整形](#ラムダはコードブロックと同様に整形)
-      - [ブレース初期化子リスト](#ブレース初期化子リスト)
-  - [言語とコンパイラの問題](#言語とコンパイラの問題)
-    - [コンパイラ警告はエラーと同様に扱う](#コンパイラ警告はエラーと同様に扱う)
-    - [移植可能なコードを書く](#移植可能なコードを書く)
-    - [RTTIや例外を使わない](#rttiや例外を使わない)
-    - [静的コンストラクタを使わない](#静的コンストラクタを使わない)
-    - [`class`と`struct`キーワードの使い方](#classとstructキーワードの使い方)
-    - [ブレース初期化子リストはコンストラクタ呼び出しに使わない](#ブレース初期化子リストはコンストラクタ呼び出しに使わない)
-    - [コードを読みやすくするために`auto`型推論を使う](#コードを読みやすくするためにauto型推論を使う)
-    - [`auto`での不必要なコピーに注意](#autoでの不必要なコピーに注意)
-    - [ポインタ順序による非決定性に注意](#ポインタ順序による非決定性に注意)
-- [スタイルの問題](#スタイルの問題)
-  - [高位の問題](#高位の問題)
-    - [公開ヘッダファイル **は** モジュール](#公開ヘッダファイル-は-モジュール)
-    - [`#include`は最低限に](#includeは最低限に)
-    - [「内部」ヘッダは非公開](#内部ヘッダは非公開)
-    - [早期終了と`continue`でコードをシンプルに](#早期終了とcontinueでコードをシンプルに)
-    - [`return`後に`else`を使用しない](#return後にelseを使用しない)
-    - [Predicateはループから関数へ](#predicateはループから関数へ)
-  - [低位の問題](#低位の問題)
-    - [型、関数、変数、および列挙子への適切な命名](#型関数変数および列挙子への適切な命名)
-    - [たっぷりのアサート](#たっぷりのアサート)
-    - [`using namespace std`を使わない](#using-namespace-stdを使わない)
-    - [ヘッダ内クラスは仮想メソッドアンカーを提供する](#ヘッダ内クラスは仮想メソッドアンカーを提供する)
-    - [列挙型を網羅したswitchにdefaultを使わない](#列挙型を網羅したswitchにdefaultを使わない)
-    - [できるだけrange-based ``for``ループを使う](#できるだけrange-based-forループを使う)
-    - [ループで毎回`end()`を評価しない](#ループで毎回endを評価しない)
-    - [`#include <iostream>`禁止](#include-iostream禁止)
-    - [`raw_ostream`を使う](#raw_ostreamを使う)
-    - [`std::endl`を避ける](#stdendlを避ける)
-    - [クラス定義内の関数定義で`inline`を使わない](#クラス定義内の関数定義でinlineを使わない)
-  - [細かい話](#細かい話)
-    - [括弧の前にスペース](#括弧の前にスペース)
-    - [前置インクリメントの選好](#前置インクリメントの選好)
-    - [名前空間のインデント](#名前空間のインデント)
-    - [無名名前空間](#無名名前空間)
-- [関連項目](#関連項目)
+[原文のcurrent版はこちら](https://llvm.org/docs/CodingStandards.html)
 
 <!--
 Introduction
 ============
+-->
 
+## 前書き
+
+<!--
 This document attempts to describe a few coding standards that are being used in
 the LLVM source tree.  Although no coding standards should be regarded as
 absolute requirements to be followed in all instances, coding standards are
@@ -97,7 +46,7 @@ particularly important for large-scale code bases that follow a library-based
 design (like LLVM).
 -->
 
-## はじめに
+この文書はLLVMソースツリーで用いられるコーディング標準について説明します。「どんな場合も従うべき絶対要件」となるようなコーディング標準はありませんが、コーディング標準は（LLVMのような）ライブラリの大規模コードベースにとって特に重要です。
 
 <!--
 While this document may provide guidance for some mechanical formatting issues,
@@ -117,11 +66,13 @@ there is a specific good reason to deviate from the standards here, please bring
 it up on the LLVM-dev mailing list.
 -->
 
-LLVMコーディング標準は様々な指針を提供しますが、それらは絶対的な標準ではありません。どんな場合も以下の原則が最優先です。
+この文書はフォーマットや空白等の細かい指針も提供しますが、それらは絶対的な標準ではありません。どんな場合も以下の原則に従います。
 
-**原則：既存コードを修正/拡張する場合は、そのスタイルを踏まえる。**
+**原則：既存コードを修正/拡張する場合は、ソースの追いやすさと均一化のために既存のスタイルを使う。**
 
-注意：一部のコードベースには本文書の標準から逸れる妥当な理由があります。例えば `libc++` の場合、命名規則等がC++標準で定められています。
+:::note
+一部のコードベースには本文書の標準から逸れる妥当な理由があります。たとえば `libc++` の場合、命名規則等がC++標準で定められています。適宜ご相談ください。
+:::
 
 <!--
 There are some conventions that are not uniformly followed in the code base
@@ -138,15 +89,18 @@ maintainability of our common source base. If you have suggestions for topics to
 be included, please mail them to `Chris <mailto:sabre@nondot.org>`_.
 -->
 
-コードベースにはここの命名規則等に従わないコードも含まれています。長期目標はコードベース全体が規則に沿うことですが、既存コードを大きく整形するパッチは望んで*いません*。一方、機能修正時にそのクラスのメソッド名を直すことは問題ありません。ただしコード整形は機能修正とコミットを分けてください。
+コードベースにはここの命名規則等に従わないコードも含まれています。これは大量のコードを持ってきたばかりのためです。長期目標はコードベース全体が規則に沿うことですが、既存コードを大きく整形するパッチは明らかに**望んでいません**。一方、ほかの理由での変更時にそのクラスのメソッド名を直すことは合理的です。機能変更と別のコミットとして整形するだけです。
 
-本ガイドラインの究極の目標は、コードベースの可読性と保守性を高めることです。
+本ガイドラインの究極の目標は、我々のコードベースの可読性と保守性を高めることです。もしトピックについて提案があれば相談ください。
 
 <!--
-
 Languages, Libraries, and Standards
 ===================================
+-->
 
+### 言語、ライブラリ、および標準
+
+<!--
 Most source code in LLVM and other LLVM projects using these coding standards
 is C++ code. There are some places where C code is used either due to
 environment restrictions, historical restrictions, or due to third-party source
@@ -155,15 +109,16 @@ conforming, modern, and portable C++ code as the implementation language of
 choice.
 -->
 
-### 言語、ライブラリ、および標準
-
-規格に準拠したモダンでポータブルなC++コードを、実装言語とします。LLVMや関連プロジェクトのソースコードの大半はC++コードですが、いくつかの部位ではCコードが使われています。これは環境の制約、歴史的な制限、もしくはサードパーティ製コードの利用に由来しています。
+全体としては、規格に準拠したモダンでポータブルなC++コードを実装言語とします。LLVMや関連プロジェクトのソースコードの大半はC++コードですが、いくつかの部位ではCコードが使われています。これは環境の制約、歴史的な制限、もしくはサードパーティ製コードの利用に由来しています。
 
 <!--
-
 C++ Standard Versions
 ---------------------
+-->
 
+### C++標準のバージョン
+
+<!--
 LLVM, Clang, and LLD are currently written using C++11 conforming code,
 although we restrict ourselves to features which are available in the major
 toolchains supported as host compilers. The LLDB project is even more
@@ -173,15 +128,16 @@ reasonable) be standard, portable, and modern C++11 code. We avoid unnecessary
 vendor-specific extensions, etc.
 -->
 
-### C++標準のバージョン
-
-LLVM、Clang、そしてLLDは現在C++11に準じて書かれていますが、開発環境としてサポートするホストコンパイラで利用可能な機能に限定しています。LLDBプロジェクトはよりアグレッシブにコンパイラを選んでいるため、より多くの機能を使えます。ホストコンパイラの機能に関わらず、コードは（合理的な範囲で）規格に準拠しモダンでポータブルなC++11コードであることが期待されます。不要なベンダー拡張等は避けます。
+LLVM、Clang、そしてLLDは現在C++11に準じて書かれていますが、開発環境としてサポートするホストコンパイラで利用可能な機能に限定しています。LLDBプロジェクトはよりアグレッシブにコンパイラを選んでいるため、より多くの機能を使えます。ホストコンパイラの機能にかかわらず、コードは（合理的な範囲で）規格に準拠しモダンでポータブルなC++11コードであることが期待されます。不要なベンダー拡張等は避けます。
 
 <!--
-
 C++ Standard Library
 --------------------
+-->
 
+### C++標準ライブラリ
+
+<!--
 Use the C++ standard library facilities whenever they are available for
 a particular task. LLVM and related projects emphasize and rely on the standard
 library facilities for as much as possible. Common support libraries providing
@@ -194,17 +150,18 @@ avoided. Also, there is much more detailed information on these subjects in the
 :doc:`ProgrammersManual`.
 -->
 
-### C++標準ライブラリ
+C++標準ライブラリを活用してください。LLVMと関連プロジェクトでは、標準ライブラリをできるだけ重視し頼ります。標準ライブラリで実装が追い付いていない機能は、LLVM名前空間内に共通サポートライブラリとして、期待される標準インタフェースに沿って実装されます。
 
-C++標準ライブラリを活用してください。標準ライブラリで実装が追い付いていない機能は、LLVM名前空間内に共通サポートライブラリとして、期待される標準インタフェースに沿って実装されます。
-
-いくつかの例外があります（標準I/Oストリームを使わない等）。詳細は[LLVM Programmer’s Manual](http://llvm.org/docs/ProgrammersManual.html)を参照してください。
+いくつかの例外があります（標準I/Oストリームを避ける等）。詳細は[LLVM Programmer’s Manual](https://llvm.org/docs/ProgrammersManual.html)を参照してください。
 
 <!--
-
 Supported C++11 Language and Library Features
 ---------------------------------------------
+-->
 
+### 利用するC++11言語とライブラリの機能
+
+<!--
 While LLVM, Clang, and LLD use C++11, not all features are available in all of
 the toolchains which we support. The set of features supported for use in LLVM
 is the intersection of those supported in the minimum requirements described
@@ -215,26 +172,26 @@ guidance below to help you know what to expect.
 
 Each toolchain provides a good reference for what it accepts:
 
-* Clang: http://clang.llvm.org/cxx_status.html
-* GCC: http://gcc.gnu.org/projects/cxx0x.html
-* MSVC: http://msdn.microsoft.com/en-us/library/hh567368.aspx
+* Clang: https://clang.llvm.org/cxx_status.html
+* GCC: https://gcc.gnu.org/projects/cxx-status.html#cxx11
+* MSVC: https://msdn.microsoft.com/en-us/library/hh567368.aspx
 
 In most cases, the MSVC list will be the dominating factor. Here is a summary
 of the features that are expected to work. Features not on this list are
 unlikely to be supported by our host compilers.
 -->
 
-### 利用するC++11言語とライブラリの機能
-
-LLVM内で用いるのは、C++11のうち[Getting Started with the LLVM System](http://releases.llvm.org/6.0.0/docs/GettingStarted.html)に記載された最小要件上でサポートされる機能に限ります。LLVM6.0.0では、Clang 3.1、GCC 4.8、Visual Studio 2015(Update3)です。最終的な定義は「要件の各ツールチェインでビルド可能であること」ですが、いくつか指針を示します。
+LLVM内で用いるのは、C++11のうち[Getting Started with the LLVM System](https://releases.llvm.org/7.0.0/docs/GettingStarted.html)に記載された最小要件上[^min_req]でサポートされる機能に限ります。
+最終的な定義は「これら各ツールチェインでビルド可能であること」ですが、いくつか指針を示します。
+[^min_req]: 訳注：LLVM7.0.0ではClang 3.1、GCC 4.8、Visual Studio 2015(Update3)
 
 どのツールチェインも、サポートする言語機能の良い資料を提供しています。
 
-- Clang: <http://clang.llvm.org/cxx_status.html>
-- GCC: <http://gcc.gnu.org/projects/cxx0x.html>
-- MSVC: <http://msdn.microsoft.com/en-us/library/hh567368.aspx>[^1]
+- Clang: <https://clang.llvm.org/cxx_status.html>
+- GCC: <https://gcc.gnu.org/projects/cxx-status.html#cxx11>
+- MSVC: <https://msdn.microsoft.com/en-us/library/hh567368.aspx>[^MSVC_features]
 
-[^1]: 対応すると思われる日本語ページ <https://docs.microsoft.com/ja-jp/cpp/visual-cpp-language-conformance>
+[^MSVC_features]: 訳注：対応すると思われる日本語ページ <https://docs.microsoft.com/ja-jp/cpp/visual-cpp-language-conformance>
 
 ほとんどの場合、MSVCが支配的要因となります。以下に動くであろう機能をざっと示します。リストにない機能はおそらく動かないでしょう。
 
@@ -326,7 +283,7 @@ LLVM内で用いるのは、C++11のうち[Getting Started with the LLVM System]
 - 初期化子リスト: [N2627](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2672.htm)
 - 委譲コンストラクタ: [N1986](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2006/n1986.pdf)
 - デフォルトのメンバー初期化子（非静的データメンバー初期化子）: [N2756](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2756.htm)
-  - `=`構文が許されているところでは自由に使えますが、braded初期化構文は*禁止*。
+  - `=`構文が許されているところでは自由に使えますが、braced初期化構文は*禁止*。
 
 <!-- textlint-enable -->
 
@@ -355,17 +312,17 @@ you hit a type trait which doesn't work we can then add support to LLVM's
 traits header to emulate it.
 
 .. _the libstdc++ manual:
-  http://gcc.gnu.org/onlinedocs/gcc-4.8.0/libstdc++/manual/manual/status.html#status.iso.2011
+  https://gcc.gnu.org/onlinedocs/gcc-4.8.0/libstdc++/manual/manual/status.html#status.iso.2011
 -->
 
-ほとんどの標準ライブラリは、C++11標準をほぼ全て実装しています。`libc++`は、テストや文書化が不十分ですが、ほぼ完全な実装を見込めます。`libstdc++`の場合は、[the libstdc++ manual](http://gcc.gnu.org/onlinedocs/gcc-4.8.0/libstdc++/manual/manual/status.html#status.iso.2011)で詳細に文書化されています。まず問題ないでしょうが、注意を要する不足がいくつかあります。
+ほとんどの標準ライブラリは、C++11標準をおおむね実装しています。`libc++`は、テストや文書化が不十分ですが、ほぼ完全な実装を見込めます。`libstdc++`の場合は、[the libstdc++ manual](https://gcc.gnu.org/onlinedocs/gcc-4.8.0/libstdc++/manual/manual/status.html#status.iso.2011)で詳細に文書化されています。まず問題ないでしょうが、注意を要する不足がいくつかあります。
 
 - type traitsの一部が未実装
 - 正規表現ライブラリなし
 - アトミックライブラリの内、フェンスがない
 - ロケールのサポートが不完全
 
-これら以外については、標準ライブラリが使えると想定して進めてよいでしょう。何かあれば自動ビルドで発覚します。例えば、もしtype traitの未実装を踏んで見つけてしまった場合は、それをエミュレートするようLLVMのtraitsヘッダにサポートを追加できます。
+これら以外については、標準ライブラリが使えると想定して進めてよいでしょう。何かあれば自動ビルドで発覚します。たとえば、もしtype traitの未実装を踏んで見つけてしまった場合は、それをエミュレートするようLLVMのtraitsヘッダにサポートを追加できます。
 
 <!--
 
@@ -389,13 +346,13 @@ this means are `Effective Go`_ and `Go Code Review Comments`_.
   https://github.com/golang/go/wiki/CodeReviewComments
 -->
 
-### その他の言語
+### それ以外の言語
 
 Go言語で記述されたコードは、以降の書式ルールの対象にはなりません。その代わりに、 [gofmt](https://golang.org/cmd/gofmt/) ツールによる整形を採用しています。
 
-Goコードは慣習に倣うよう努めてください。[Effective Go](https://golang.org/doc/effective_go.html) および [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments) [^2]の2つが良いガイドラインとなります。
+Goコードは慣習に倣うよう努めてください。[Effective Go](https://golang.org/doc/effective_go.html) および [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments) [^golang_CodeReviewComments]の2つが良いガイドラインとなります。
 
-[^2]: 翻訳記事：[#golang CodeReviewComments 日本語翻訳](http://qiita.com/knsh14/items/8b73b31822c109d4c497)
+[^golang_CodeReviewComments]: 翻訳記事：[#golang CodeReviewComments 日本語翻訳](https://knsh14.github.io/translations/go-codereview-comments/)
 
 <!--
 
@@ -413,8 +370,6 @@ knows they should comment their code, and so should you.  When writing comments,
 write them as English prose, which means they should use proper capitalization,
 punctuation, etc.  Aim to describe what the code is trying to do and why, not
 *how* it does it at a micro level. Here are a few critical things to document:
-
-.. _header file comment:
 -->
 
 ## 機械的なソースの問題
@@ -426,6 +381,8 @@ punctuation, etc.  Aim to describe what the code is trying to do and why, not
 可読性と保守性を高めるため、コメントを入れてください。英文で、適切な句読点と大小文字で書いてください。コードがなにを行おうとしているのか、またなぜ（why）行おうとしているのかを説明することに焦点を絞り、微細に *どうやるか（how）* を書くことは避けてください。重要な事柄をいくつか示します。
 
 <!--
+.. _header file comment:
+
 File Headers
 """"""""""""
 
@@ -497,7 +454,11 @@ to the paper where it is published should be included, as well as any notes or
 *gotchas* in the code to watch out for.
 -->
 
-1行目の "`-*- C++ -*-`" は、EmacsにソースファイルがCではなくC++であることを教えます（Emacsはデフォルトで `.h`ファイルをCとして扱います）。このタグは、`.cpp`ファイルでは不要です。最初の行にはファイル名と簡単な説明があります。これはコードを印刷して読む場合に重要です。
+1行目の "`-*- C++ -*-`" は、EmacsにソースファイルがCではなくC++であることを教えます（Emacsはデフォルトで `.h`ファイルをCとして扱います）。
+
+:::note
+このタグは、`.cpp`ファイルでは不要です。最初の行にはファイル名と簡単な説明があります。これはコードを印刷して読む場合に重要です。
+:::
 
 ファイルの次のセクションは、ファイルがどのライセンスの元でリリースされたかを簡潔に定義します。これにより、ソースコードがどのような条件の下で配布できるかが明確になります。そのため、どのような形であれ、変更してはいけません。
 
@@ -535,7 +496,7 @@ happens: does the method return null?  Abort?  Format your hard disk?
 
 クラスのメソッド（およびグローバル関数）定義も適切に文書化してください。ここでは、何をするかについての簡単なメモや、境界での挙動の説明のみがあれば十分です（特に凝ったことをしていない場合）。理想は、コードを読まずとも使い方が理解できることです。
 
-想定外の事態に何が起きるかについて触れるとよいでしょう。nullを返す？　強制終了？　ハードディスクの初期化？
+想定外の事態に何が起きるかについて触れるとよいでしょう。nullを返す？　強制終了？　HDD初期化？
 
 <!--
 Comment Formatting
@@ -609,7 +570,7 @@ command.
 
 複数行のコード例は、`\code ... \endcode`で囲います。
 
-関数引数の文書化には、`\param name`コマンドを使い新しい段落を始めます。引数が出力または入出力として用いられる場合、それぞれ`\param [out] name`や`\param [in,out] name`コマンドを使います。
+関数引数の文書化には、`\param name`コマンドを使い新しい段落を始めます。引数が出力や入出力として用いられる場合、それぞれ`\param [out] name`や`\param [in,out] name`コマンドを使います。
 
 関数の戻り値の説明には、`\returns`コマンドを使い新たな段落を始めます。
 
@@ -782,7 +743,7 @@ For example:
   };
 -->
 
-Doxygenの追加機能を使う必要はありませんが、使ったほうがよい場合もあります。
+Doxygenのさらなる機能を使う必要はありませんが、使ったほうがよい場合もあります。
 
 - 関連する関数や型を含む小さな名前空間へのコメント追加
 - 名前空間内で関連する関数を整理するための、トップレベルのグループの使用
@@ -849,9 +810,9 @@ similarly include its own headers before including llvm headers.  This rule
 applies to all LLVM subprojects.
 -->
 
-メインモジュールヘッダファイルは、`.h`ファイルで定義されたインタフェースを実装する`.cpp`ファイルに適用されます。この`#include`は、それがファイルシステムのどこにあるかに関わらず、**最初に**includeされるべきです。`.cpp`ファイルが実装するインタフェースをファイル先頭でincludeすることにより、ヘッダ内の`#include`に含まれない依存関係が無いことを確認できます。暗黙の依存関係があった場合、コンパイルエラーとなってくれます。また、`.cpp`の実装するインタフェースがどこで定義されているかを示す一種のドキュメントにもなります。
+メインモジュールヘッダファイルは、`.h`ファイルで定義されたインタフェースを実装する`.cpp`ファイルに適用されます。この`#include`は、それがファイルシステムのどこにあるかにかかわらず、**最初に**includeされるべきです。`.cpp`ファイルが実装するインタフェースをファイル先頭でincludeすることにより、ヘッダ内の`#include`に含まれない依存関係がないことを確認できます。暗黙の依存関係があった場合、コンパイルエラーとなってくれます。また、`.cpp`の実装するインタフェースがどこで定義されているかを示す一種のドキュメントにもなります。
 
-LLVMプロジェクトとサブプロジェクトのヘッダでは、同様の理由で具体性の高いものから順にグループ分けします。例えば、LLDBはclangとLLVMに依存しclangはLLVMに依存します。そのため、LLDBのソースファイルは`lldb`、`clang`、`llvm`の順にヘッダファイルをインクルードします。これにより、LLDBヘッダファイルから必要なインクルードが漏れてしまう可能性を減らします。clangでも同様に、LLVMヘッダの前に独自ヘッダをインクルードします。このルールは、すべてのLLVMサブプロジェクトに適用されます。
+LLVMプロジェクトとサブプロジェクトのヘッダでは、同様の理由で具体性の高いものから順にグループ分けします。たとえば、LLDBはclangとLLVMに依存しclangはLLVMに依存します。そのため、LLDBのソースファイルは`lldb`、`clang`、`llvm`の順にヘッダファイルをインクルードします。これにより、LLDBヘッダファイルから必要なインクルードが漏れてしまう可能性を減らします。clangでも同様に、LLVMヘッダの前に独自ヘッダをインクルードします。このルールは、すべてのLLVMサブプロジェクトに適用されます。
 
 <!--
 .. _fit into 80 columns:
@@ -877,7 +838,7 @@ debate.
 
 #### ソースコードの幅
 
-80桁に収めてください。これは、コードを印刷したり、`xterm`上でサイズを変えず読みたい人の助けになります。また、多くの他プロジェクトでも80桁が採用されているため、多くの人はエディタをそのように設定しています。
+80桁に収めてください。これは、コードを印刷したり、`xterm`上でサイズを変えず読みたい人の助けになります。また、多くの他プロジェクトでも80桁が採用されているため、みなエディタをそのように設定しています。
 
 <!--
 Use Spaces Instead of Tabs
@@ -900,7 +861,7 @@ incredible diffs that are absolutely worthless.
 
 ソースファイルではタブよりもスペースがよいです。タブは表示環境ごとに異なるタブストップで展開され崩れる恐れがあります。
 
-いつものように[原則](#はじめに)に従いましょう。既存コードに手を入れる場合、既存のスタイルに準じます。4スペースのインデントが好きでも、2スペースインデントコードの中ではそう**しないでください**。また、ファイル全体のインデント修正もしないでください。大量の無意味な差分を生んでしまいます。
+いつものように[原則](#前書き)に従いましょう。既存コードに手を入れる場合、既存のスタイルに準じます。4スペースのインデントが好きでも、2スペースインデントコードの中ではそう**しないでください**。また、ファイル全体のインデント修正もしないでください。大量の無意味な差分を生じます。
 
 <!--
 Indent Code Consistently
@@ -915,7 +876,7 @@ and tool-friendly formatting and indentation.
 
 #### インデントの一貫
 
-C++11の導入に際し、一貫性・保守性・ツールフレンドリーなフォーマットとインデントを実現するために、いくつか提案があります。
+C++11の導入に際し、一貫性・保守性・ツールフレンドリーなフォーマットとインデントを実現するために、いくつか新しい課題があります。
 コードブロックのための標準的なインデントは、2スペースです。
 
 <!--
@@ -963,7 +924,9 @@ interesting after the lambda in the statement, indent the block two spaces from
 the indent of the ``[]``:
 -->
 
-このフォーマットを活かすため、新規APIで継続や単一の呼び出し可能な引数（ファンクタや`std::function`）をとる場合、なるべく最後の引数にします。
+このフォーマットを活かすため、新規APIで継続や単一の呼び出し可能な引数（ファンクタ[^functor]や`std::function`）をとる場合、なるべく最後の引数にします。
+
+[^functor]: 訳注：`operator()`を持つクラス。
 
 文の中にいくつも複数行のラムダがあったり、ラムダの後ろに何かが続く場合には、`[]`から2スペースインデントします。
 
@@ -1038,10 +1001,10 @@ understood for formatting nested function calls. Examples:
 This formatting scheme also makes it particularly easy to get predictable,
 consistent, and automatic formatting with tools like `Clang Format`_.
 
-.. _Clang Format: http://clang.llvm.org/docs/ClangFormat.html
+.. _Clang Format: https://clang.llvm.org/docs/ClangFormat.html
 -->
 
-変数をまとめて初期化するブレースの歴史的な共通フォーマットは、深いネスト、一般的な式中、関数引数、およびラムダときれいに混在できません。私たちは、新しいコードでブレース初期化リストの簡単な規則を用いることを提案します。関数呼び出し内のブレースは通常のかっこと同様に扱います。このフォーマット規則は、すでによく知られたネストされた関数呼び出しのフォーマットとうまく整合します。
+変数をまとめて初期化するブレースの歴史的な共通フォーマットは、深いネスト、一般的な式中、関数引数、およびラムダときれいに混在できません。私たちは、新しいコードでブレース初期化リストの簡単な規則を用いることを提案します。関数呼び出し内のブレースは通常の括弧と同様に扱います。このフォーマット規則は、すでによく知られたネストされた関数呼び出しのフォーマットとうまく整合します。
 
 ```cpp:例
 foo({a, b, c}, {1, 2, 3});
@@ -1052,7 +1015,7 @@ llvm::Constant *Mask[] = {
     llvm::ConstantInt::get(llvm::Type::getInt32Ty(getLLVMContext()), 2)};
 ```
 
-このフォーマット方式は、適用が簡単で、一貫性があり、[Clang Format](http://clang.llvm.org/docs/ClangFormat.html)のようなツールで自動整形できます。
+このフォーマット方式は、適用が簡単で、一貫性があり、[Clang Format](https://clang.llvm.org/docs/ClangFormat.html)のようなツールで自動整形できます。
 
 <!--
 
@@ -1072,7 +1035,7 @@ legitimate errors in output and make dealing with a translation unit difficult.
 
 #### コンパイラ警告はエラーと同様に扱う
 
-あなたのコードでコンパイラが警告を出す場合は、何かが間違っています。正確にキャストしていない、「疑わしい」生成、または何か合法的な誤りを犯しています。コンパイラ警告の指摘するコードは問題を覆い隠し、翻訳単位を扱いづらくする可能性があります。
+あなたのコードでコンパイラが警告を出す場合は、何かが間違っています。正確にキャストしていない、「疑わしい」生成、または何か合法的な誤りを犯しています。コンパイラ警告はエラーを覆い隠して、翻訳単位を扱いづらくする可能性があります。
 
 <!--
 It is not possible to prevent all warnings from all compilers, nor is it
@@ -1089,7 +1052,7 @@ I write code like this:
   }
 -->
 
-すべてのコンパイラ上ですべての警告を防ぐことは現実的でありません。代わりに、良い徹底した警告セットを提供する標準的なコンパイラ（`gcc`など）を選択し、それに固執してください。少なくとも`gcc`の場合には、若干のコードの構文を変更するだけで、偽の警告を回避できます。例えば、このようなコードを書く場合に悩ましい警告が出ます。
+すべてのコンパイラ上ですべての警告を防ぐことは現実的でありません。代わりに、良い徹底した警告セットを提供する標準的なコンパイラ（`gcc`など）を選択し、それに固執してください。少なくとも`gcc`の場合には、若干のコードの構文を変更するだけで、偽の警告を回避できます。たとえば、このようなコードを書く場合に悩ましい警告が出ます。
 
 ```cpp
 if (V = getValue()) {
@@ -1137,9 +1100,9 @@ features are used, they should only be an implementation detail of a library
 which has a simple exposed API, and preferably be buried in ``libSystem``.
 -->
 
-#### 移植可能なコードを書く
+#### 移植性のあるコードを書く
 
-ほとんどの場合、完全に移植可能なコードを書けます。不可能な場合は、明確に定義された（そしてきちんと文書化された）インタフェースの背後に隔離します。
+ほとんどの場合、完全に移植性のあるコードを書けます。不可能な場合は、明確に定義された（そしてきちんと文書化された）インタフェースの背後に隔離します。
 
 これはあなたがホストコンパイラについて多くを期待してはならないことを意味します（そしてVisual Studioが最低基準となる傾向があります）。もしコンパイラ依存の高度な機能を使う場合、それらはシンプルな外部APIを持つライブラリの詳細実装であるべきです。`libSystem`内に埋め込まれることが望ましいです。
 
@@ -1163,9 +1126,11 @@ substantially more efficient than ``dynamic_cast<>``.
 
 #### RTTIや例外を使わない
 
-コードと実行ファイルのサイズを減らすために、LLVMはRTTI（例えば`dynamic_cast<>`）や例外を使いません。これら2つの言語機能は、一般的なC++の **「従量課金」** 原則に反して実行ファイルの膨張を引き起こします。たとえ例外がコードで使われなかったり、RTTIがクラスで使われなかったとしてもです。このため、私たちはコード全体でそれらを無効にします。
+コードと実行ファイルのサイズを減らすために、LLVMはRTTI（たとえば`dynamic_cast<>`）や例外を使いません。これら2つの言語機能は、一般的なC++の **「従量課金」** 原則[^principle]に反して実行ファイルの膨張を引き起こします。たとえ例外がコードで使われなかったり、RTTIがクラスで使われなかったとしてもです。このため、私たちはコード全体でそれらを無効にします。
 
-LLVMはRTTIを手で展開した[isa<>、cast<>、そしてdyn_cast<>](http://releases.llvm.org/6.0.0/docs/ProgrammersManual.html#isa) のようなテンプレートを広く用います。RTTIのこの形式は、[任意のクラス](http://releases.llvm.org/6.0.0/docs/HowToSetUpLLVMStyleRTTI.html)にオプトインで追加できます。これらはおおむね`dynamic_cast<>`よりも効率的です。
+[^principle]: 訳注：いわゆる[Zero-overhead principle](https://en.cppreference.com/w/cpp/language/Zero-overhead_principle)
+
+LLVMはRTTIを手で展開した[isa<>、cast<>、そしてdyn_cast<>](https://releases.llvm.org/7.0.0/docs/ProgrammersManual.html#isa) のようなテンプレートを広く用います。RTTIのこの形式は、[任意のクラス](https://releases.llvm.org/7.0.0/docs/HowToSetUpLLVMStyleRTTI.html)にオプトインで追加できます。これらはおおむね`dynamic_cast<>`よりも効率的です。
 
 <!--
 .. _static constructor:
@@ -1175,28 +1140,26 @@ Do not use Static Constructors
 Static constructors and destructors (e.g. global variables whose types have a
 constructor or destructor) should not be added to the code base, and should be
 removed wherever possible.  Besides `well known problems
-<http://yosefk.com/c++fqa/ctors.html#fqa-10.12>`_ where the order of
+<https://yosefk.com/c++fqa/ctors.html#fqa-10.12>`_ where the order of
 initialization is undefined between globals in different source files, the
 entire concept of static constructors is at odds with the common use case of
 LLVM as a library linked into a larger application.
-
+  
 Consider the use of LLVM as a JIT linked into another application (perhaps for
-`OpenGL, custom languages <http://llvm.org/Users.html>`_, `shaders in movies
-<http://llvm.org/devmtg/2010-11/Gritz-OpenShadingLang.pdf>`_, etc). Due to the
+`OpenGL, custom languages <https://llvm.org/Users.html>`_, `shaders in movies
+<https://llvm.org/devmtg/2010-11/Gritz-OpenShadingLang.pdf>`_, etc). Due to the
 design of static constructors, they must be executed at startup time of the
 entire application, regardless of whether or how LLVM is used in that larger
-application.
+application.  There are two problems with this:
 -->
 
 #### 静的コンストラクタを使わない
 
-静的コンストラクタとデストラクタ（例えば、コンストラクタやデストラクタを持つ型のグローバル変数）はコードベースに追加されるべきではなく、可能な限り除かなければなりません。ソースファイル間での初期化順が未定義であるという[よく知られた問題](http://yosefk.com/c++fqa/ctors.html#fqa-10.12)もあります。静的コンストラクタの全体コンセプトは、大規模なアプリケーションにライブラリとしてリンクされるLLVMの一般的な使われ方と合いません。
+静的コンストラクタとデストラクタ（たとえば、コンストラクタやデストラクタを持つ型のグローバル変数）はコードベースに追加されるべきではなく、可能な限り除かなければなりません。ソースファイル間での初期化順が未定義であるという[よく知られた問題](https://yosefk.com/c++fqa/ctors.html#fqa-10.12)もあります。静的コンストラクタの全体コンセプトは、大規模なアプリケーションにライブラリとしてリンクされるLLVMの一般的な使われ方と合いません。
 
-別のアプリケーション（[OpenGL, custom languages](http://llvm.org/Users.html), [shaders in movies](http://llvm.org/devmtg/2010-11/Gritz-OpenShadingLang.pdf), 等）でJIT用にLLVMがリンクされた場合を考えてみましょう。静的コンストラクタの設計に起因して、LLVMがいつ使われるかに関わらず、それらはアプリケーションの起動時に実行されるでしょう。これには2つの問題があります。
+別のアプリケーション（[OpenGL, custom languages](https://llvm.org/Users.html), [shaders in movies](https://llvm.org/devmtg/2010-11/Gritz-OpenShadingLang.pdf), 等）でJIT用にLLVMがリンクされた場合を考えてみましょう。静的コンストラクタの設計に起因して、LLVMがいつ使われるかにかかわらず、それらはアプリケーションの起動時に実行されるでしょう。これには2つの問題があります。
 
 <!--
-There are two problems with this:
-
 * The time to run the static constructors impacts startup time of applications
   --- a critical time for GUI apps, among others.
 
@@ -1210,17 +1173,17 @@ target or other library into an application, but static constructors violate
 this goal.
 
 That said, LLVM unfortunately does contain static constructors.  It would be a
-`great project <http://llvm.org/PR11944>`_ for someone to purge all static
+`great project <https://llvm.org/PR11944>`_ for someone to purge all static
 constructors from LLVM, and then enable the ``-Wglobal-constructors`` warning
 flag (when building with Clang) to ensure we do not regress in the future.
 -->
 
 - 静的コンストラクタの処理時間がアプリケーションの起動時間に影響します。特にGUIアプリケーションでは致命的な時間です。
-- 静的コンストラクタにより、アプリが多くの余分なページメモリをディスクから引き出します。各`.o`ファイル内のコンストラクタコードと僅かなデータ。また、touched/dirtyページは低メモリマシン上のVMにさらなる負担を加えます。
+- 静的コンストラクタにより、アプリが多くの余分なページメモリをディスクから引き出します。各`.o`ファイル内のコンストラクタコードとわずかなデータ。また、touched/dirtyページは低メモリマシン上のVMにさらなる負担を加えます。
 
 私たちは、追加のLLVMターゲットやアプリケーションのライブラリへのリンクがゼロコストであることを強く望みますが、静的コンストラクタはこの目標に反します。
 
-とはいえ、LLVMは残念ながら静的コンストラクタを含んでいます。[great project](http://llvm.org/PR11944)にてLLVMからすべての静的コンストラクタが取り除こうとしています。達成の暁には将来退行しないように`-Wglobal-constructors`警告フラグ（Clangビルドの場合）を有効にします。
+とはいえ、LLVMは残念ながら静的コンストラクタを含んでいます。[great project](https://llvm.org/PR11944)にてLLVMからすべての静的コンストラクタが取り除こうとしています。達成の暁には将来退行しないように`-Wglobal-constructors`警告フラグ（Clangビルドの場合）を有効にします。
 
 <!--
 Use of ``class`` and ``struct`` Keywords
@@ -1376,7 +1339,7 @@ bar_map.insert({my_key, my_value});
 変数の初期化でブレース初期化子リストを使う場合は、等号を使います。
 
 ```cpp
-int data[] = {0, 1, 2, 3};
+  int data[] = {0, 1, 2, 3};
 ```
 
 <!--
@@ -1394,7 +1357,7 @@ often behind a container's typedef such as ``std::vector<T>::iterator``.
 
 #### コードを読みやすくするために`auto`型推論を使う
 
-C++11では「だいたいいつも`auto`」という主張もありますが、LLVMはより緩やかなスタンスを使用しています。コードが読みやすくなったり、保守しやすくなる場合のみ`auto`を使ってください。`auto`を使うのに「だいたいいつも」とはしませんが、`cast<Foo>(...)`等の初期化や、その他文脈から明らかな場合は`auto`を使ってください。また、抽象化されすぎている型に対しても`auto`は有用です。`std::vector<T>::iterator`のようなコンテナクラス内の型定義は抽象化されすぎている型の典型例でしょう。
+C++11では「たいてい`auto`」という主張もありますが、LLVMはより緩やかなスタンスを使用しています。コードが読みやすくなったり、保守しやすくなる場合のみ`auto`を使ってください。`auto`を使うのに「たいてい」とはしませんが、`cast<Foo>(...)`等の初期化や、ほかの場所でも文脈から明らかな場合は`auto`を使ってください。また、抽象化されすぎている型に対しても`auto`は有用です。`std::vector<T>::iterator`のようなコンテナクラス内の型定義は抽象化されすぎている型の典型例でしょう。
 
 <!--
 Beware unnecessary copies with ``auto``
@@ -1458,56 +1421,117 @@ like vector/MapVector/SetVector if you want to iterate pointer keys.
 
 #### ポインタ順序による非決定性に注意
 
-一般に、ポインタ同士に順序はありません。その結果、setやmapのように順序のないコンテナで、キーにポインタが使われる場合、反復(iteration)順序は未定義です。したがって、そのようなコンテナの反復は結果として非決定的なコードが生成されます（訳注：実行毎に順序が変わりうる）。必ずしも「間違ったコード」とは限りませんが、予期しないクラッシュを招いたり、再現しないバグを生じるなどして、デバッグを難しくします。
+一般に、ポインタ間で順序はありません。その結果、setやmapのように順序のないコンテナで、キーにポインタが使われる場合、反復（iteration）順序は未定義です。したがって、そのようなコンテナの反復は結果として非決定的[^nondeterministic]なコードが生成されます。必ずしも「間違ったコード」とは限りませんが、予期しないクラッシュを招いたり、再現しないバグを生じるなどして、デバッグを難しくします。
 
-経験則として、順序ある結果を期待する場合は、順序なしコンテナの反復前にはソートを欠かさないでください。それか、ポインタキーを反復したいならvector/MapVector/SetVectorのような順序付きコンテナを使います。
+[^nondeterministic]: 訳注：実行毎に順序が変わりうる。
+
+経験則として、順序ある結果を期待する場合は、順序なしコンテナの反復前にソートしてください。それか、ポインタキーを反復したいならvector/MapVector/SetVectorのような順序付きコンテナを使います。
 
 <!--
+Beware of non-deterministic sorting order of equal elements
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+std::sort uses a non-stable sorting algorithm in which the order of equal
+elements is not guaranteed to be preserved. Thus using std::sort for a
+container having equal elements may result in non-determinstic behavior.
+To uncover such instances of non-determinism, LLVM has introduced a new
+llvm::sort wrapper function. For an EXPENSIVE_CHECKS build this will randomly
+shuffle the container before sorting. As a rule of thumb, always make sure to
+use llvm::sort instead of std::sort.
+-->
+
+#### 等しい要素のソートによる非決定性に注意
+
+std::sortは安定ソートではありません。そのため、等しい要素を持つコンテナにstd::sortを使うと、非決定的な動作となる恐れがあります。
+この非決定的な挙動を見つけるため、LLVMは新しいllvm::sortラッパ関数を導入しました。EXPENSIVE_CHECKSビルドの場合、ソート前にコンテナをランダムにシャッフルします。経験則として、常にstd::sortではなくllvm::sortを使ってください。
+
+<!--
 Style Issues
 ============
 
 The High-Level Issues
 ---------------------
-
-A Public Header File **is** a Module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-C++ doesn't do too well in the modularity department.  There is no real
-encapsulation or data hiding (unless you use expensive protocol classes), but it
-is what we have to work with.  When you write a public header file (in the LLVM
-source tree, they live in the top level "``include``" directory), you are
-defining a module of functionality.
-
-Ideally, modules should be completely independent of each other, and their
-header files should only ``#include`` the absolute minimum number of headers
-possible. A module is not just a class, a function, or a namespace: it's a
-collection of these that defines an interface.  This interface may be several
-functions, classes, or data structures, but the important issue is how they work
-together.
-
-In general, a module should be implemented by one or more ``.cpp`` files.  Each
-of these ``.cpp`` files should include the header that defines their interface
-first.  This ensures that all of the dependences of the module header have been
-properly added to the module header itself, and are not implicit.  System
-headers should be included after user headers for a translation unit.
-
-.. _minimal list of #includes:
 -->
 
 ## スタイルの問題
 
 ### 高位の問題
 
-#### 公開ヘッダファイル **は** モジュール
+<!--
+Self-contained Headers
+^^^^^^^^^^^^^^^^^^^^^^
 
-あなたが公開ヘッダファイル（LLVMソースツリーでは、トップの「`include`」にいます）を書く場合、それは機能モジュールを定義しています。
+Header files should be self-contained (compile on their own) and end in .h.
+Non-header files that are meant for inclusion should end in .inc and be used
+sparingly.
 
-理想的には、モジュールは互いに完全に独立し、そのヘッダファイルには必要最小限の`#include`のみが含まれるべきです。モジュールは、単なるクラス、関数、あるいは名前空間ではありません。それらの集合で、インタフェースを定義します。このインタフェースは、いくつかの関数やクラスまたはデータ構造であってもよいですが、重要な問題はそれらがどのように連携するかです。
+All header files should be self-contained. Users and refactoring tools should
+not have to adhere to special conditions to include the header. Specifically, a
+header should have header guards and include all other headers it needs.
 
-一般的に、モジュールは1つ以上の`.cpp`ファイルによって実装されるべきです。これら `.cpp`の各ファイルは、最初にそのインタフェースの定義ヘッダをインクルードする必要があります。これにより、モジュールヘッダの依存すべてが適切にモジュールヘッダ自体に追加されていることが保証されます。システムヘッダは、翻訳単位のユーザヘッダの後にインクルードされるべきです。
+There are rare cases where a file designed to be included is not
+self-contained. These are typically intended to be included at unusual
+locations, such as the middle of another file. They might not use header
+guards, and might not include their prerequisites. Name such files with the
+.inc extension. Use sparingly, and prefer self-contained headers when possible.
+
+In general, a header should be implemented by one or more ``.cpp`` files.  Each
+of these ``.cpp`` files should include the header that defines their interface
+first.  This ensures that all of the dependences of the header have been
+properly added to the header itself, and are not implicit.  System headers
+should be included after user headers for a translation unit.
+-->
+
+#### 自己完結型ヘッダ
+
+ヘッダファイルは自己完結型（それのみでコンパイル）とし、「.h」で終えます。
+読み込みを意図した非ヘッダファイルは「.inc」で終え、注意して使ってください。
+
+すべてのヘッダは自己完結型にします。ユーザーとリファクタリングツールはincludeのために特別な条件に従う必要はありません。具体的には、ヘッダはインクルードガードを持ち、必要なすべてのヘッダをincludeします。
+
+まれな例として、読み込みを意図したファイルは自己完結型ではありません。これらは通常、別のファイルの途中などでincludeされます。インクルードガードを使わなかったり、前提条件を含まない可能性があります。そのようなファイルには「.inc」拡張子を付けてください。控えめ使い、できるだけ自己完結型ヘッダファイルを優先してください。
+
+一般的に、ヘッダは1つ以上の`.cpp`ファイルで実装されます。これらの`.cpp`ファイルは、始めにインタフェースを定義したヘッダをincludeします。これにより依存関係すべてが暗黙なく適切にヘッダに含まれることが保証されます。システムヘッダは翻訳単位のユーザーヘッダの後にincludeします。
 
 <!--
+Library Layering
+^^^^^^^^^^^^^^^^
+
+A directory of header files (for example ``include/llvm/Foo``) defines a
+library (``Foo``). Dependencies between libraries are defined by the
+``LLVMBuild.txt`` file in their implementation (``lib/Foo``). One library (both
+its headers and implementation) should only use things from the libraries
+listed in its dependencies.
+
+Some of this constraint can be enforced by classic Unix linkers (Mac & Windows
+linkers, as well as lld, do not enforce this constraint). A Unix linker
+searches left to right through the libraries specified on its command line and
+never revisits a library. In this way, no circular dependencies between
+libraries can exist.
+
+This doesn't fully enforce all inter-library dependencies, and importantly
+doesn't enforce header file circular dependencies created by inline functions.
+A good way to answer the "is this layered correctly" would be to consider
+whether a Unix linker would succeed at linking the program if all inline
+functions were defined out-of-line. (& for all valid orderings of dependencies
+- since linking resolution is linear, it's possible that some implicit
+dependencies can sneak through: A depends on B and C, so valid orderings are
+"C B A" or "B C A", in both cases the explicit dependencies come before their
+use. But in the first case, B could still link successfully if it implicitly
+depended on C, or the opposite in the second case)
+-->
+
+#### ライブラリの階層化
+
+ヘッダファイルのディレクトリ（たとえば`include/llvm/Foo`）はライブラリ（`Foo`）を定義します。ライブラリ間の依存関係は、それらの実装（`lib/Foo`）の`LLVMBuild.txt`ファイルで定義されます。ライブラリ（ヘッダおよび実装）では依存関係リストのもののみを使えます。
+
+この制約が適用できるのは旧来のUnixリンカです（Mac & Windowsのリンカはlldと同様にこの制約を適用しません）。Unixリンカはコマンドラインで指定されたライブラリを左から右に検索します。ライブラリの循環依存は存在できません。
+
+これはすべてのライブラリ間の依存を完全に強制するわけではありません。また重要なこととして、インライン関数によるヘッダファイルの循環依存は強制しません。「これが正しく階層化されているか」に答える良い方法は、すべてのインライン関数がout-of-lineで定義された場合でもUnixリンカが成功するか考えてみることです。（さらに依存関係の有効な順序すべてについて。リンク解決は線形のため、いくつかの暗黙の依存関係についてすり抜ける恐れがあります。AはBとCに依存するので、有効な順序は「C B A」や「B C A」です。どちらも利用の前に明示的な依存が来ます。ただし前者では暗黙的にBがCに依存している場合リンクが成功し、後者はその逆です）
+
+<!--
+.. _minimal list of #includes:
+
 ``#include`` as Little as Possible
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -1541,7 +1565,7 @@ you'll find out about later.
 - クラスのポインタや参照を使うだけの場合
 - 関数やメソッド宣言の戻り値で使うだけ（ヘッダにその関数定義を含まない）の場合
 
-この勧めをやりすぎるのは簡単ですが、使っているヘッダファイルのすべてがインクルードされなくては**なりません**。直接または別のヘッダーファイルを介して間接的にそれらをインクルードできます。モジュールヘッダ内でのインクルード漏れを確認する方法があります。前述のように実装ファイルの**最初に**モジュールヘッダを含めるようにしてください。この方法により、隠れた依存関係がコンパイルエラーとなり発覚します。
+この勧めをやりすぎるのは簡単ですが、使っているヘッダファイルのすべてがインクルードされなくては**なりません**。直接または別のヘッダファイルを介して間接的にそれらをインクルードできます。モジュールヘッダ内でのインクルード漏れを確認する方法があります。前述のように実装ファイルの**最初に**モジュールヘッダを含めるようにしてください。この方法により、隠れた依存関係がコンパイルエラーとなり発覚します。
 
 <!--
 Keep "Internal" Headers Private
@@ -1746,7 +1770,7 @@ have to push context into their brain for.  If a loop is large, this can be a
 big understandability win.
 -->
 
-これには、関数の早期終了を使う利点が全て備わっています。ループのネストを減らし、条件に該当する理由を簡単に記述でき、そして`else`を気にしなくてよいことが明らかです。ループが大きい場合、非常に分かりやすくなります。
+これには、関数の早期終了を使う利点がすべて備わっています。ループのネストを減らし、条件に該当する理由を簡単に記述でき、そして`else`を気にしなくてよいことが明らかです。ループが大きい場合、非常に分かりやすくなります。
 
 <!--
 Don't use ``else`` after a ``return``
@@ -1913,7 +1937,7 @@ sort of thing is:
 
 #### Predicateはループから関数へ
 
-成否判定だけの小さなループを書くことは非常に一般的です。これを書く方法は様々ありますが、例えば次のようなものです。
+成否判定だけの小さなループを書くことは非常に一般的です。これを書く方法は各種ありますが、たとえば次のようなものです。
 
 ```cpp:例
 bool FoundFoo = false;
@@ -1950,7 +1974,7 @@ code to be structured like this:
   }
 -->
 
-この種のコードを書くのは厄介であり、大抵は悪い兆候です。関数化（staticにできます）し早期終了を使いましょう。次のようなコード構成が好ましいです。
+この種のコードを書くのはやっかいであり、たいていは悪い兆候です。関数化（staticにできます）し早期終了を使いましょう。次のようなコード構成が好ましいです。
 
 ```cpp:好ましい例
 /// \returns true if the specified list has an element that is a foo.
@@ -1979,7 +2003,7 @@ contains a foo, we can trust the function name and continue reading with better
 locality.
 -->
 
-これを行うには多くの理由があります。インデントを減らし、しばしば共有できる同じチェックを行う他のコードとの重複を排除します。さらに重要なのは、関数の*命名を強制*し、それにコメントを書くことを強制します。このちっぽけな例では、大した価値がありません。ですが条件が複雑な場合は、predicateクエリをより簡単に理解できるようになるでしょう。インラインで詳細にBarListがfooを含むかをどのようにチェックするのかについて直面するのではなく、関数名を信頼しより良い局所性で読んでいけます。
+これを行うには多くの理由があります。インデントを減らし、しばしば共有できる同じチェックを行う別のコードとの重複を排除します。さらに重要なのは、関数の*命名を強制*し、それにコメントを書くことを強制します。このちっぽけな例では、大した価値がありません。ですが条件が複雑な場合は、predicateクエリをより簡単に理解できるようになるでしょう。インラインで詳細にBarListがfooを含むかをどのようにチェックするのかについて直面するのではなく、関数名を信頼しより良い局所性で読んでいけます。
 
 <!--
 
@@ -2003,7 +2027,7 @@ In general, names should be in camel case (e.g. ``TextFileReader`` and
 
 #### 型、関数、変数、および列挙子への適切な命名
 
-下手に選ばれた名前は、読者に誤解を与え、バグを引き起こす可能性があります。私たちは、*わかりやすい*名前を使うことがどれだけ重要か、とても十分に強調しきれません。常識の範囲で、要素の意味と役割に一致する名前を選んでください。よく知られていない限り略語は避けてください。良い名前を選んだ後、名前に一貫した大文字を使ってください。ブレがあると、利用者はいちいち細かいつづりに煩わされます。
+下手に選ばれた名前は、読者に誤解を与え、バグを引き起こす可能性があります。私たちは、*わかりやすい*名前を使うことがどれだけ重要か、とても十分に強調しきれません。常識の範囲で、要素の意味と役割に一致する名前を選んでください。よく知られていない限り略語は避けてください。良い名前を選んだ後、名前に一貫した大文字を使ってください。ブレがあると、利用者はいちいち細かいスペルに煩わされます。
 
 一般に、名前はキャメルケース（例：`TextFileReader`と`isLValue()`）でなければなりません。種類ごとにルールがあります。
 
@@ -2212,7 +2236,7 @@ used instead. In cases where this is not practical, ``report_fatal_error`` may
 be used.
 -->
 
-アサーションも``llvm_unreachable``も、リリースビルドではプログラムをabortしません。もしユーザの入力によりエラー状態となりうる場合、[LLVM Programmer’s Manual](http://releases.llvm.org/6.0.0/docs/ProgrammersManual.html)にある回復可能なエラーメカニズムを使う必要があります。それが実用的でないような場合は、``report_fatal_error``を使います。
+アサーションも``llvm_unreachable``も、リリースビルドではプログラムをabortしません。もしユーザーの入力によりエラー状態となりうる場合、[LLVM Programmer’s Manual](https://releases.llvm.org/7.0.0/docs/ProgrammersManual.html)にある回復可能なエラーメカニズムを使う必要があります。それが実用的でないような場合は、``report_fatal_error``を使います。
 
 <!--
 Another issue is that values used only by assertions will produce an "unused
@@ -2252,7 +2276,7 @@ bool NewToSet = Myset.insert(Value);
 assert(NewToSet && "The value shouldn't be in the set yet");
 ```
 
-2つの興味深い例があります。最初の例では、`V.size()`の呼び出しはアサートのためにのみ有用であり、アサーションが無効になっている場合に実行されたくありません。このようなコードは、アサート自体に呼び出しを移動する必要があります。次の例では、呼び出しの副作用はアサートが有効かどうかに関わらず起きなければなりません。この場合、警告を無効にするには値をvoidにキャストします。具体的には、このようなコードがよいでしょう。
+2つの興味深い例があります。最初の例では、`V.size()`の呼び出しはアサートのためにのみ有用であり、アサーションが無効になっている場合に実行されたくありません。このようなコードは、アサート自体に呼び出しを移動する必要があります。次の例では、呼び出しの副作用はアサートが有効かどうかによらず起きなければなりません。この場合、警告を無効にするには値をvoidにキャストします。具体的には、このようなコードがよいでしょう。
 
 ```cpp:好ましい例
 assert(V.size() > 42 && "Vector smaller than it should be");
@@ -2290,7 +2314,7 @@ LLVMでは、標準名前空間のすべての識別子について、「`using 
 
 ヘッダファイルで、`'using namespace XXX'`ディレクティブを追加することはヘッダを`#include`するソースファイルの名前空間を汚染します。これは明らかに悪いことです。
 
-実装ファイル（例えば`.cpp`ファイル）では、よりスタイルの問題ですが、それでも重要です。基本的に、明示的な名前空間の接頭辞は、コードを**明解**にします。また、LLVMコードや他の名前空間との間で名前空間の衝突が起きないため、**よりポータブル**になります。将来のC++標準の改訂では`std`名前空間へのシンボル追加もあるでしょう。ですので、私たちはLLVMで`'using namespace std;'`を決して使いません。
+実装ファイル（たとえば`.cpp`ファイル）では、よりスタイルの問題ですが、それでも重要です。基本的に、明示的な名前空間の接頭辞は、コードを**明解**にします。また、LLVMコードやほかの名前空間との間で名前空間の衝突が起きないため、**よりポータブル**になります。将来のC++標準の改訂では`std`名前空間へのシンボル追加もあるでしょう。ですので、私たちはLLVMで`'using namespace std;'`をけっして使いません。
 
 <!--
 The exception to the general rule (i.e. it's not an exception for the ``std``
@@ -2304,10 +2328,10 @@ is that any ``.cpp`` file that implements code in any namespace may use that
 namespace (and its parents'), but should not use any others.
 -->
 
-一般的なルールの例外（つまり、`std`名前空間の例外ではありません）は、実装ファイルのためのものです。例えば、LLVMプロジェクト内のすべてのコードは、「llvm」名前空間内のコードを実装します。ですので、それはOKとします。実際明解ですし、`.cpp`ファイルは`#include`直後の先頭に`'using namespace llvm;'`ディレクティブがあります。これは、中括弧に基づいたインデントを行うソースエディタ向けに本文のインデントを減らし、概念的なコンテキストをきれいに保ちます。この規則を一般的に表すと、次のとおりです。
+一般的なルールの例外（つまり、`std`名前空間の例外ではありません）は、実装ファイルのためのものです。たとえば、LLVMプロジェクト内のすべてのコードは、「llvm」名前空間内のコードを実装します。ですので、それはOKとします。実際明解ですし、`.cpp`ファイルは`#include`直後の先頭に`'using namespace llvm;'`ディレクティブがあります。これは、中括弧に基づいたインデントを行うソースエディタ向けに本文のインデントを減らし、概念的なコンテキストをきれいに保ちます。この規則を一般的に表すと、次のとおりです。
 
 - 任意の名前空間内のコードを実装する任意の`.cpp`ファイルは、それの（そして親の）名前空間を`using`してもよい。
-- その他の名前空間を`using`してはならない。
+- 別の名前空間を`using`してはならない。
 
 <!--
 Provide a Virtual Method Anchor for Classes in Headers
@@ -2346,7 +2370,7 @@ the switch.
 
 #### 列挙型を網羅したswitchにdefaultを使わない
 
-`-Wswitch`は、列挙型の値を網羅せず、defaultも無いswitchに警告を出します。列挙型を網羅したswitchにdefaultを書いた場合、新しい要素が列挙体に追加されても`-Wswitch`は警告しません。この種のdefaultを追加することを避けるために、Clangは`-Wcovered-switch-default`警告を持ちます。これはデフォルトで無効になっていますが、Clangの警告をサポートする版でLLVMをビルドする場合は有効になります。
+`-Wswitch`は、列挙型の値を網羅せずdefaultもないswitchに警告を出します。列挙型を網羅したswitchにdefaultを書いた場合、新しい要素が列挙体に追加されても`-Wswitch`は警告しません。この種のdefaultを追加することを避けるために、Clangは`-Wcovered-switch-default`警告を持ちます。これはデフォルトで無効になっていますが、Clangの警告をサポートする版でLLVMをビルドする場合は有効になります。
 
 この影響で、列挙型を網羅したswitchの各caseでreturnしていた場合、GCCでビルドすると「コントロールが非void型関数の終わりに到達します」関連の警告が出ます。GCCはenum句が個々の列挙子だけでなく任意の値を取れることを前提としているためです。この警告を抑止するには、switchの後に`llvm_unreachable`を使います。
 
@@ -2367,7 +2391,7 @@ loops wherever possible for all newly added code. For example:
 
 #### できるだけrange-based ``for``ループを使う
 
-C++11でのrange-based ``for``ループの導入は、イテレータの明示的操作がめったに要らないことを意味します。私達は、すべての新規追加コードに対して、できるだけrange-based ``for``ループを使います。
+C++11でのrange-based ``for``ループの導入は、イテレータの明示的操作がめったにいらないことを意味します。私達は、すべての新規追加コードに対して、できるだけrange-based ``for``ループを使います。
 
 ```cpp
 BasicBlock *BB = ...
@@ -2432,7 +2456,7 @@ please write the loop in the first form and add a comment indicating that you
 did it intentionally.
 -->
 
-注意深い方は、これら２つのループが異なるセマンティクスを持つ可能性にお気づきかもしれません。もしコンテナ（この例ではBasicBlock)が変更されるとしたら、"``BB->end()``"はループ毎に変わるかもしれず、２つ目のループ(訳注：事前評価)は正しくないかもしれません。実際そのような挙動に依存している場合は、最初の形式でループを書き、「意図的に毎ループ評価している」旨コメント追加してください。
+注意深い方は、これら2つのループが異なるセマンティクスを持つ可能性にお気付きかもしれません。もしコンテナ（この例ではBasicBlock)が変更されるとしたら、"``BB->end()``"はループ毎に変わるかもしれず、2つ目のループ（訳注：事前評価）は正しくないかもしれません。実際そのような挙動に依存している場合は、最初の形式でループを書き、「意図的に毎ループ評価している」旨コメント追加してください。
 
 <!--
 Why do we prefer the second form (when correct)?  Writing the loop in the first
@@ -2445,7 +2469,7 @@ really aren't cheap.  By writing it in the second form consistently, you
 eliminate the issue entirely and don't even have to think about it.
 -->
 
-なぜ２つ目の形式がよいのか（正しい場合）？　最初の形式でループを書くことには２つの問題があります。第一に、ループ開始時に評価する方法と比べ、非効率かもしれません。この例では、コストはおそらくわずかですが、ループ毎に少し余分な負荷があります。しかしもっと複雑な式になると、コストが急上昇するかもしれません。"``SomeMap[X]->end()``"のような式を見たことがあります。mapのルックアップは決して安くありません。２つ目の書き方を一貫することで、問題を完全に排除でき、考えずに済みます。
+なぜ2つ目の形式がよいのか（正しい場合）？　最初の形式でループを書くことには2つの問題があります。第一に、ループ開始時に評価する方法と比べ、非効率かもしれません。この例では、コストはおそらくわずかですが、ループ毎に少し余分な負荷があります。しかしもっと複雑な式になると、コストが急上昇するかもしれません。"``SomeMap[X]->end()``"のような式を見たことがあります。mapのルックアップはけっして安くありません。2つ目の書き方を一貫することで、問題を完全に排除でき、考えずに済みます。
 
 <!--
 The second (even bigger) issue is that writing the loop in the first form hints
@@ -2459,9 +2483,9 @@ While the second form of the loop is a few extra keystrokes, we do strongly
 prefer it.
 -->
 
-さらに大きな第二の問題は、最初の形式で書くことはループ内でコンテナを変更していることを示すということです（コメントは簡単な確認という事実！）。２つ目の形式でループを書くと、コンテナが変更されないことがループ内を見ずとも分かります。
+さらに大きな第二の問題は、最初の形式で書くことはループ内でコンテナを変更していることを示すということです（コメントは簡単な確認という事実！）。2つ目の形式でループを書くと、コンテナが変更されないことがループ内を見ずとも分かります。
 
-２つ目の形式でのループは余分なキータイプはありますが、強くおすすめします。
+2つ目の形式でのループは余分なキータイプはありますが、強くお勧めします。
 
 <!--
 ``#include <iostream>`` is Forbidden
@@ -2488,7 +2512,7 @@ provides various APIs that are better performing for almost every use than
 
 ライブラリファイルで`#include <iostream>`を使うことは**禁止**されています。なぜなら、多くの一般的な実装では、それを含むすべての変換単位に静的コンストラクタを透過的に注入するからです。
 
-その他のストリームヘッダ（たとえば`<sstream>`）の使用はこの点で問題ないことに注意してください。`<iostream>`のみです。しかし、`raw_ostream`の提供する様々なAPIは、ほとんどすべての用途で`std::ostream`スタイルのAPIよりも優れたパフォーマンスを発揮します。
+それ以外のストリームヘッダ（たとえば`<sstream>`）の使用はこの点で問題ないことに注意してください。`<iostream>`のみです。しかし、`raw_ostream`の提供するさまざまなAPIは、ほとんどすべての用途で`std::ostream`スタイルのAPIよりも優れたパフォーマンスを発揮します。
 
 > **注**
 >
@@ -2534,14 +2558,14 @@ it's better to use a literal ``'\n'``.
 
 #### `std::endl`を避ける
 
-`std::endl`修飾子は、`iostream`と共に使われ、指定の出力ストリームに改行を出力します。そして、出力ストリームをフラッシュします。言い換えると、以下は同等です。
+`std::endl`修飾子は、`iostream`とともに使われ、指定の出力ストリームに改行を出力します。そして、出力ストリームをFlashします。言い換えると、以下は同等です。
 
 ```cpp
 std::cout << std::endl;
 std::cout << '\n' << std::flush;
 ```
 
-ほとんどの場合、おそらく出力ストリームをフラッシュする理由はありません。`'\n'`リテラルを使うことをお勧めします。
+ほとんどの場合、おそらく出力ストリームをFlashする理由はありません。`'\n'`リテラルを使うことをお勧めします。
 
 <!--
 Don't use ``inline`` when defining a function in a class definition
@@ -2606,7 +2630,7 @@ reasoning on why we prefer them.
 
 ### 細かい話
 
-このセクションでは、推奨する低レベルのフォーマットガイドラインを、私たちが好む理由と共に説明します。
+このセクションでは、推奨する低レベルのフォーマットガイドラインを、私たちが好む理由とともに説明します。
 
 <!--
 Spaces Before Parentheses
@@ -2718,7 +2742,7 @@ get in the habit of always using preincrement, and you won't have a problem.
 1. 「作業値」を前置インクリメントする
 1. インクリメント前の値を返す
 
-プリミティブ型の場合、これはたいした問題ではありません。しかしイテレータでは、大きな問題となる可能性があります。例えば、いくつかのイテレータはスタックを含み、それらにオブジェクトを設定します。イテレータをコピーすると、それらのコピーコンストラクタを呼ぶことにもなります。一般に、いつも前置インクリメントを使う習慣を身につれば、問題は起きません。
+プリミティブ型の場合、これはたいした問題ではありません。しかしイテレータでは、大きな問題となる可能性があります。たとえば、いくつかのイテレータはスタックを含み、それらにオブジェクトを設定します。イテレータをコピーすると、それらのコピーコンストラクタを呼ぶことにもなります。一般に、いつも前置インクリメントを使う習慣を身につれば、問題は起きません。
 
 <!--
 Namespace Indentation
@@ -2786,7 +2810,7 @@ clarification.
 .. _static:
 -->
 
-閉じられる名前空間が自明であれば終了コメントを省いてもよいでしょう。例えば、ヘッダファイル内の最も外側の名前空間はまず混乱の原因となりません。しかし、ソースファイルの途中で名前空間（名前の有無を問わず）を閉じる場合は、説明したほうがよいでしょう。
+閉じられる名前空間が自明であれば終了コメントを省いてもよいでしょう。たとえば、ヘッダファイル内の最も外側の名前空間はまず混乱の原因となりません。しかし、ソースファイルの途中で名前空間（名前の有無を問わず）を閉じる場合は、説明したほうがよいでしょう。
 
 <!--
 Anonymous Namespaces
@@ -2939,25 +2963,38 @@ something.
 
 ## 関連項目
 
-これらのコメントや勧告の多くは他の情報源から抜粋されています。特に重要な書籍を紹介します。
+これらのコメントや勧告の多くはほかの情報源から抜粋されています。特に重要な書籍を紹介します。
 
-1. [Effective C++](http://www.amazon.com/Effective-Specific-Addison-Wesley-Professional-Computing/dp/0321334876) by Scott Meyers.同じ著者による「More Effective C++」「Effective STL」もまた、興味深く有用です。
+1. [Effective C++](http://www.amazon.com/Effective-Specific-Addison-Wesley-Professional-Computing/dp/0321334876) by Scott Meyers。同じ著者による「More Effective C++」「Effective STL」もまた、興味深く有用です。
 1. [Large-Scale C++ Software Design](http://www.amazon.com/Large-Scale-Software-Design-John-Lakos/dp/0201633620/ref=sr_1_1) by John Lakos
 
-## 原文の変更履歴
+## 原文の変更内容
 
-### 5.0.1 -> 6.0.0の変更
+リンク先の更新は記載省略してます。
 
-- はじめに＞その他の言語　Go Code Review Commentsのリンク先変更
-- 機械的なソースの問題＞言語とコンパイラの問題＞ポインタ順序による非決定性に注意　追加
-- スタイルの問題＞高位の問題＞早期終了と`continue`でコードをシンプルに　コードがシンプルに(range-based for, auto)
-- スタイルの問題＞低位の問題＞たっぷりのアサート　エラーの回復について追加
-- スタイルの問題＞低位の問題＞できるだけrange-based ``for``ループを使う　追加
-- スタイルの問題＞低位の問題＞ループで毎回`end()`を評価しない　文言変更
+<details><summary>6.0.0 -> 7.0.0</summary>
+
+- 追加：機械的なソースの問題＞言語とコンパイラの問題＞等しい要素のソートによる非決定性に注意
+- 削除（下2つに分割）：スタイルの問題＞高位の問題＞公開ヘッダファイルはモジュール
+- 追加：スタイルの問題＞高位の問題＞自己完結型ヘッダ
+- 追加：スタイルの問題＞高位の問題＞ライブラリの階層化
+
+</details>
+
+<details><summary>5.0.1 -> 6.0.0</summary>
+
+- 追加：機械的なソースの問題＞言語とコンパイラの問題＞ポインタ順序による非決定性に注意
+- 変更：スタイルの問題＞高位の問題＞早期終了と`continue`でコードをシンプルに
+　コードがシンプルに（range-based for, auto）
+- 内容追加：スタイルの問題＞低位の問題＞たっぷりのアサート
+　エラーの回復について
+- 追加：スタイルの問題＞低位の問題＞できるだけrange-based ``for``ループを使う
+- 内容変更：スタイルの問題＞低位の問題＞ループで毎回`end()`を評価しない
+
+</details>
 
 ## この文書（翻訳）のライセンスについて
 
 © Copyright 2003-2018, LLVM Project.
-原文は、[こちらのライセンス](https://releases.llvm.org/6.0.0/LICENSE.TXT)下にあるLLVMのドキュメントとして同梱/公開されています。
-そちらのライセンスに従っていただければよいかと思います。
+原文は[こちらのライセンス](https://releases.llvm.org/6.0.0/LICENSE.TXT)下にあるLLVMのドキュメントに含まれますので、そちらのライセンスに従います。
 翻訳者（@tenmyo）は著作権を主張しません。皆さんのコーディング品質向上に、少しでも役立てればなによりです。
