@@ -2,7 +2,7 @@
 id: 7e4847b88e63d5769dd8
 url: https://qiita.com/tenmyo/items/7e4847b88e63d5769dd8
 created_at: 2018-01-06T15:19:28+09:00
-updated_at: 2022-12-19T22:26:58+09:00
+updated_at: 2023-01-30T16:49:18+09:00
 private: false
 coediting: false
 tags:
@@ -22,7 +22,7 @@ LLVMは主にC++で実装されたコンパイラ基盤です。
 LLVMの一部としてリリースされているCファミリーのコンパイラ`Clang`は、macOSやiOS、FreeBSD、OpenBSDの標準コンパイラとして採用されています。
 
 本記事は、LLVMプロジェクトで用いられているコーディング標準（LLVM Coding Standards）のざっくり日本語訳です。
-「組織内でのコーディング規約作成の参考にしたい」「フォーマッタでLLVMスタイルが指定できるが、その内容を知りたい」といった読者を想定しています。
+「組織内でのコーディング規約作成の参考にしたい」「`clang-format`等のフォーマッタでLLVMスタイルが指定できるが、その内容を知りたい」といった読者を想定しています。
 そのため、LLVMプロジェクト自体へ関わる方法（連絡先メールアドレス）などについては一部記載を省いています。必要な方は原文を参照してください。
 
 LLVMのメジャーリリースに合わせてこの記事も更新していく予定です。現在は[7.0.0版](https://releases.llvm.org/7.0.0/docs/CodingStandards.html)に基づいています。
@@ -1130,7 +1130,7 @@ substantially more efficient than ``dynamic_cast<>``.
 
 [^principle]: 訳注：いわゆる[Zero-overhead principle](https://en.cppreference.com/w/cpp/language/Zero-overhead_principle)
 
-LLVMはRTTIを手で展開した[isa<>、cast<>、そしてdyn_cast<>](https://releases.llvm.org/7.0.0/docs/ProgrammersManual.html#isa) のようなテンプレートを広く用います。RTTIのこの形式は、[任意のクラス](https://releases.llvm.org/7.0.0/docs/HowToSetUpLLVMStyleRTTI.html)にオプトインで追加できます。これらはおおむね`dynamic_cast<>`よりも効率的です。
+LLVMはRTTIを手で展開した [isa\<>、cast\<>、そしてdyn_cast\<>](https://releases.llvm.org/7.0.0/docs/ProgrammersManual.html#isa) のようなテンプレートを広く用います。RTTIのこの形式は、[任意のクラス](https://releases.llvm.org/7.0.0/docs/HowToSetUpLLVMStyleRTTI.html)にオプトインで追加できます。これらはおおむね`dynamic_cast<>`よりも効率的です。
 
 <!--
 .. _static constructor:
