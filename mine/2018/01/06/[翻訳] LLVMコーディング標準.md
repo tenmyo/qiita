@@ -14,9 +14,10 @@ tags:
 team: null
 -->
 
-# [翻訳] LLVMコーディング標準(7.0.0)
+# [翻訳] LLVMコーディング標準(8.0.0)
 
 # LLVMコーディング標準
+
 LLVMは主にC++で実装されたコンパイラ基盤です。
 近年急速に普及が進んでおり、RustやSwiftのバックエンドとしても利用されています。
 LLVMの一部としてリリースされているCファミリーのコンパイラ`Clang`は、macOSやiOS、FreeBSD、OpenBSDの標準コンパイラとして採用されています。
@@ -25,7 +26,7 @@ LLVMの一部としてリリースされているCファミリーのコンパイ
 「組織内でのコーディング規約作成の参考にしたい」「`clang-format`等のフォーマッタでLLVMスタイルが指定できるが、その内容を知りたい」といった読者を想定しています。
 そのため、LLVMプロジェクト自体へ関わる方法（連絡先メールアドレス）などについては一部記載を省いています。必要な方は原文を参照してください。
 
-LLVMのメジャーリリースに合わせてこの記事も更新していく予定です。現在は[7.0.0版](https://releases.llvm.org/7.0.0/docs/CodingStandards.html)に基づいています。
+LLVMのメジャーリリースに合わせてこの記事も更新していく予定です。現在は[8.0.0版](https://releases.llvm.org/8.0.0/docs/CodingStandards.html)に基づいています。
 
 解釈誤りや分かりづらさの指摘は、コメントや編集リクエストでいただけたら幸いです。
 
@@ -515,6 +516,21 @@ useful to use C style (``/* */``) comments however:
 #. When writing a source file that is used by a tool that only accepts C style
    comments.
 
+#. When documenting the significance of constants used as actual parameters in
+   a call. This is most helpful for ``bool`` parameters, or passing ``0`` or
+   ``nullptr``. Typically you add the formal parameter name, which ought to be
+   meaningful. For example, it's not clear what the parameter means in this call:
+
+   .. code-block:: c++
+
+     Object.emitName(nullptr);
+
+   An in-line C-style comment makes the intent obvious:
+
+   .. code-block:: c++
+
+     Object.emitName(/*Prefix=*/nullptr);
+
 Commenting out large blocks of code is discouraged, but if you really have to do
 this (for documentation purposes or as a suggestion for debug printing), use
 ``#if 0`` and ``#endif``. These nest properly and are better behaved in general
@@ -528,6 +544,17 @@ than C style comments.
 1. Cコードファイル
 1. Cソースファイルから`#include`されるヘッダファイル
 1. Cスタイルのコメントしか受け付けないツール向けのファイル
+1. 実引数での定数の意味を説明する場合。特に`bool`パラメータや`0`、`nullptr`で有用です。通常は（meaningfulである）正式な引数名です。たとえば、この呼び出しでパラメータの意味は不明確です。
+
+```cpp
+Object.emitName(nullptr);
+```
+
+インラインのCスタイルコメントは意味を明確にします。
+
+```cpp
+Object.emitName(/*Prefix=*/nullptr);
+```
 
 大量のコードのコメントアウトがどうしても必要な場合（ドキュメント目的やデバッグプリント案等）は、 `#if 0`と`#endif`を使ってください。Cスタイルコメントよりもうまく働きます。
 
@@ -841,7 +868,7 @@ debate.
 80桁に収めてください。これは、コードを印刷したり、`xterm`上でサイズを変えず読みたい人の助けになります。また、多くの他プロジェクトでも80桁が採用されているため、みなエディタをそのように設定しています。
 
 <!--
-Use Spaces Instead of Tabs
+Whitespace
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In all cases, prefer spaces to tabs in source files.  People have different
@@ -855,13 +882,21 @@ existing code if you are modifying and extending it.  If you like four spaces of
 indentation, **DO NOT** do that in the middle of a chunk of code with two spaces
 of indentation.  Also, do not reindent a whole source file: it makes for
 incredible diffs that are absolutely worthless.
+
+Do not commit changes that include trailing whitespace. If you find trailing
+whitespace in a file, do not remove it unless you're otherwise changing that
+line of code. Some common editors will automatically remove trailing whitespace
+when saving a file which causes unrelated changes to appear in diffs and
+commits.
 -->
 
-#### タブの代わりにスペースを使う
+#### 空白
 
 ソースファイルではタブよりもスペースがよいです。タブは表示環境ごとに異なるタブストップで展開され崩れる恐れがあります。
 
 いつものように[原則](#前書き)に従いましょう。既存コードに手を入れる場合、既存のスタイルに準じます。4スペースのインデントが好きでも、2スペースインデントコードの中ではそう**しないでください**。また、ファイル全体のインデント修正もしないでください。大量の無意味な差分を生じます。
+
+末尾の空白を含む変更をコミットしないでください。もしファイルで末尾の空白を見つけても、その行を変える場合を除き、削さないでください。 一部のエディタは、ファイル保存時に末尾の空白を自動的に削除します。これにより、無関係な変更が差分とコミットに現れます。
 
 <!--
 Indent Code Consistently
@@ -1612,7 +1647,7 @@ exit from a function, consider this "bad" code:
 .. code-block:: c++
 
   Value *doSomething(Instruction *I) {
-    if (!isa<TerminatorInst>(I) &&
+    if (!I->isTerminator() &&
         I->hasOneUse() && doOtherThing(I)) {
       ... some long code ....
     }
@@ -1627,7 +1662,7 @@ exit from a function, consider this "bad" code:
 
 ```cpp:悪い例
 Value *doSomething(Instruction *I) {
-  if (!isa<TerminatorInst>(I) &&
+  if (!I->isTerminator() &&
       I->hasOneUse() && doOtherThing(I)) {
     ... some long code ....
   }
@@ -1658,7 +1693,7 @@ It is much preferred to format the code like this:
 
   Value *doSomething(Instruction *I) {
     // Terminators never need 'something' done to them because ... 
-    if (isa<TerminatorInst>(I))
+    if (I->isTerminator())
       return 0;
 
     // We conservatively avoid transforming instructions with multiple uses
@@ -1677,7 +1712,7 @@ It is much preferred to format the code like this:
 ```cpp:良い例
 Value *doSomething(Instruction *I) {
   // Terminators never need 'something' done to them because ...
-  if (isa<TerminatorInst>(I))
+  if (I->isTerminator())
     return 0;
 
   // We conservatively avoid transforming instructions with multiple uses
@@ -2970,7 +3005,14 @@ something.
 
 ## 原文の変更内容
 
-リンク先の更新は記載省略してます。
+リンク先の更新や誤記修正などは記載省略してます。
+
+<details><summary>7.0.0 -> 8.0.0</summary>
+
+- 内容追加：機械的なソースの問題＞ソースコードのフォーマット＞コメント書式
+　C++スタイルの例外として、パラメータの場合。
+- 見出し変更と内容追加：機械的なソースの問題＞ソースコードのフォーマット＞空白（前版では「タブの代わりにスペースを使う」）
+　行末の空白について。
 
 <details><summary>6.0.0 -> 7.0.0</summary>
 
@@ -2987,7 +3029,7 @@ something.
 - 変更：スタイルの問題＞高位の問題＞早期終了と`continue`でコードをシンプルに
 　コードがシンプルに（range-based for, auto）
 - 内容追加：スタイルの問題＞低位の問題＞たっぷりのアサート
-　エラーの回復について
+　エラーの回復について。
 - 追加：スタイルの問題＞低位の問題＞できるだけrange-based ``for``ループを使う
 - 内容変更：スタイルの問題＞低位の問題＞ループで毎回`end()`を評価しない
 
