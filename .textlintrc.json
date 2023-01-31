@@ -5,6 +5,9 @@
       "no-exclamation-question-mark": false,
       "ja-no-mixed-period": {
         "allowPeriodMarks": [":::"]
+      },
+      "no-doubled-joshi": {
+        "allow": ["も"]
       }
     },
     "preset-jtf-style": {
