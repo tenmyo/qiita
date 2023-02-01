@@ -2,7 +2,7 @@
 id: 7e4847b88e63d5769dd8
 url: https://qiita.com/tenmyo/items/7e4847b88e63d5769dd8
 created_at: 2018-01-06T15:19:28+09:00
-updated_at: 2023-01-31T09:54:41+09:00
+updated_at: 2023-01-31T10:54:22+09:00
 private: false
 coediting: false
 tags:
@@ -14,7 +14,7 @@ tags:
 team: null
 -->
 
-# [翻訳] LLVMコーディング標準(8.0.0)
+# [翻訳] LLVMコーディング標準(9.0.0)
 
 # LLVMコーディング標準
 
@@ -26,7 +26,7 @@ LLVMの一部としてリリースされているCファミリーのコンパイ
 「組織内でのコーディング規約作成の参考にしたい」「`clang-format`等のフォーマッタでLLVMスタイルが指定できるが、その内容を知りたい」といった読者を想定しています。
 そのため、LLVMプロジェクト自体へ関わる方法（連絡先メールアドレス）などについては一部記載を省いています。必要な方は原文を参照してください。
 
-LLVMのメジャーリリースに合わせてこの記事も更新していく予定です。現在は[8.0.0版](https://releases.llvm.org/8.0.0/docs/CodingStandards.html)に基づいています。原文の変更内容は[記事末尾](#原文の変更内容)に軽くまとめています。
+LLVMのメジャーリリースに合わせてこの記事も更新していく予定です。現在は[9.0.0版](https://releases.llvm.org/9.0.0/docs/CodingStandards.html)に基づいています。原文の変更内容は[記事末尾](#原文の変更内容)に軽くまとめています。
 
 解釈誤りや分かりづらさの指摘は、コメントや編集リクエストでいただけたら幸いです。
 
@@ -182,9 +182,9 @@ of the features that are expected to work. Features not on this list are
 unlikely to be supported by our host compilers.
 -->
 
-LLVM内で用いるのは、C++11のうち[Getting Started with the LLVM System](https://releases.llvm.org/8.0.0/docs/GettingStarted.html)に記載された最小要件上[^min_req]でサポートされる機能に限ります。
+LLVM内で用いるのは、C++11のうち[Getting Started with the LLVM System](https://releases.llvm.org/9.0.0/docs/GettingStarted.html)に記載された最小要件上[^min_req]でサポートされる機能に限ります。
 最終的な定義は「これら各ツールチェインでビルド可能であること」ですが、いくつか指針を示します。
-[^min_req]: 訳注：LLVM8.0.0ではClang 3.5、Apple Clang 6.0、GCC 5.1、Visual Studio 2017。
+[^min_req]: 訳注：LLVM9.0.0ではClang 3.5、Apple Clang 6.0、GCC 5.1、Visual Studio 2017。
 
 どのツールチェインも、サポートする言語機能の良い資料を提供しています。
 
@@ -397,8 +397,9 @@ tree.  The standard header looks like this:
   //
   //                     The LLVM Compiler Infrastructure
   //
-  // This file is distributed under the University of Illinois Open Source
-  // License. See LICENSE.TXT for details.
+  // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+  // See https://llvm.org/LICENSE.txt for license information.
+  // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
   //
   //===----------------------------------------------------------------------===//
   ///
@@ -418,8 +419,9 @@ tree.  The standard header looks like this:
   //
   //                     The LLVM Compiler Infrastructure
   //
-  // This file is distributed under the University of Illinois Open Source
-  // License. See LICENSE.TXT for details.
+  // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+  // See https://llvm.org/LICENSE.txt for license information.
+  // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
   //
   //===----------------------------------------------------------------------===//
   ///
@@ -1165,7 +1167,7 @@ substantially more efficient than ``dynamic_cast<>``.
 
 [^principle]: 訳注：いわゆる[Zero-overhead principle](https://en.cppreference.com/w/cpp/language/Zero-overhead_principle)
 
-LLVMはRTTIを手で展開した [isa\<>、cast\<>、そしてdyn_cast\<>](https://releases.llvm.org/8.0.0/docs/ProgrammersManual.html#isa) のようなテンプレートを広く用います。RTTIのこの形式は、[任意のクラス](https://releases.llvm.org/8.0.0/docs/HowToSetUpLLVMStyleRTTI.html)にオプトインで追加できます。これらはおおむね`dynamic_cast<>`よりも効率的です。
+LLVMはRTTIを手で展開した [isa\<>、cast\<>、そしてdyn_cast\<>](https://releases.llvm.org/9.0.0/docs/ProgrammersManual.html#isa) のようなテンプレートを広く用います。RTTIのこの形式は、[任意のクラス](https://releases.llvm.org/9.0.0/docs/HowToSetUpLLVMStyleRTTI.html)にオプトインで追加できます。これらはおおむね`dynamic_cast<>`よりも効率的です。
 
 <!--
 .. _static constructor:
@@ -2271,7 +2273,7 @@ used instead. In cases where this is not practical, ``report_fatal_error`` may
 be used.
 -->
 
-アサーションも``llvm_unreachable``も、リリースビルドではプログラムをabortしません。もしユーザーの入力によりエラー状態となりうる場合、[LLVM Programmer’s Manual](https://releases.llvm.org/8.0.0/docs/ProgrammersManual.html)にある回復可能なエラーメカニズムを使う必要があります。それが実用的でないような場合は、``report_fatal_error``を使います。
+アサーションも``llvm_unreachable``も、リリースビルドではプログラムをabortしません。もしユーザーの入力によりエラー状態となりうる場合、[LLVM Programmer’s Manual](https://releases.llvm.org/9.0.0/docs/ProgrammersManual.html)にある回復可能なエラーメカニズムを使う必要があります。それが実用的でないような場合は、``report_fatal_error``を使います。
 
 <!--
 Another issue is that values used only by assertions will produce an "unused
@@ -3007,6 +3009,13 @@ something.
 
 リンク先の更新や誤記修正など内容に関わらない変更は記載省略してます。
 
+<details><summary>8.0.0 -> 9.0.0</summary>
+
+- 内容変更：機械的なソースの問題＞ソースコードのフォーマット＞ファイルのヘッダ
+　標準様式変更。ライセンスについて。
+
+</details>
+
 <details><summary>7.0.0 -> 8.0.0</summary>
 
 - 内容追加：機械的なソースの問題＞ソースコードのフォーマット＞コメント書式
@@ -3040,5 +3049,5 @@ something.
 ## この文書（翻訳）のライセンスについて
 
 © Copyright 2003-2019, LLVM Project.
-原文は[こちらのライセンス](https://releases.llvm.org/8.0.0/LICENSE.TXT)下にあるLLVMのドキュメントに含まれますので、そちらのライセンスに従います。
+原文は[こちらのライセンス](https://releases.llvm.org/9.0.0/LICENSE.TXT)下にあるLLVMのドキュメントに含まれますので、そちらのライセンスに従います。
 翻訳者（@tenmyo）は著作権を主張しません。皆さんのコーディング品質向上に、少しでも役立てればなによりです。
