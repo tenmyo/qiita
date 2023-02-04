@@ -2,7 +2,7 @@
 id: 7e4847b88e63d5769dd8
 url: https://qiita.com/tenmyo/items/7e4847b88e63d5769dd8
 created_at: 2018-01-06T15:19:28+09:00
-updated_at: 2023-01-31T10:54:22+09:00
+updated_at: 2023-02-04T22:22:15+09:00
 private: false
 coediting: false
 tags:
@@ -14,7 +14,7 @@ tags:
 team: null
 -->
 
-# [翻訳] LLVMコーディング標準(9.0.0)
+# [翻訳] LLVMコーディング標準(10.0.0)
 
 # LLVMコーディング標準
 
@@ -24,13 +24,14 @@ LLVMの一部としてリリースされているCファミリーのコンパイ
 
 本記事は、LLVMプロジェクトで用いられているコーディング標準（LLVM Coding Standards）のざっくり日本語訳です。
 「組織内でのコーディング規約作成の参考にしたい」「`clang-format`等のフォーマッタでLLVMスタイルが指定できるが、その内容を知りたい」といった読者を想定しています。
-そのため、LLVMプロジェクト自体へ関わる方法（連絡先メールアドレス）などについては一部記載を省いています。必要な方は原文を参照してください。
 
-LLVMのメジャーリリースに合わせてこの記事も更新していく予定です。現在は[9.0.0版](https://releases.llvm.org/9.0.0/docs/CodingStandards.html)に基づいています。原文の変更内容は[記事末尾](#原文の変更内容)に軽くまとめています。
+LLVMのメジャーリリースに合わせてこの記事も更新していく予定です。現在は[10.0.0版](https://releases.llvm.org/10.0.0/docs/CodingStandards.html)に基づいています。原文の変更内容は[記事末尾](#原文の変更内容)に軽くまとめています。
 
 解釈誤りや分かりづらさの指摘は、コメントや編集リクエストでいただけたら幸いです。
 
 [原文のcurrent版はこちら](https://llvm.org/docs/CodingStandards.html)
+
+----
 
 <!--
 Introduction
@@ -40,14 +41,14 @@ Introduction
 ## 前書き
 
 <!--
-This document attempts to describe a few coding standards that are being used in
-the LLVM source tree.  Although no coding standards should be regarded as
-absolute requirements to be followed in all instances, coding standards are
+This document describes coding standards that are used in the LLVM project.
+Although no coding standards should be regarded as absolute requirements to be
+followed in all instances, coding standards are
 particularly important for large-scale code bases that follow a library-based
 design (like LLVM).
 -->
 
-この文書はLLVMソースツリーで用いられるコーディング標準について説明します。「どんな場合も従うべき絶対要件」となるようなコーディング標準はありませんが、コーディング標準は（LLVMのような）ライブラリの大規模コードベースにとって特に重要です。
+この文書ではLLVMプロジェクトで用いられるコーディング標準について説明します。「どんな場合も従うべき絶対要件」となるようなコーディング標準はありませんが、コーディング標準は（LLVMのような）ライブラリ構造の大規模コードベースにとって特に重要です。
 
 <!--
 While this document may provide guidance for some mechanical formatting issues,
@@ -60,20 +61,16 @@ Always follow the golden rule:
     use the style that is already being used so that the source is uniform and
     easy to follow.**
 
-Note that some code bases (e.g. ``libc++``) have really good reasons to deviate
-from the coding standards.  In the case of ``libc++``, this is because the
-naming and other conventions are dictated by the C++ standard.  If you think
-there is a specific good reason to deviate from the standards here, please bring
-it up on the LLVM-dev mailing list.
+Note that some code bases (e.g. ``libc++``) have special reasons to deviate
+from the coding standards.  For example, in the case of ``libc++``, this is
+because the naming and other conventions are dictated by the C++ standard.
 -->
 
 この文書はフォーマットや空白等の細かい指針も提供しますが、それらは絶対的な標準ではありません。どんな場合も以下の原則に従います。
 
 **原則：既存コードを修正/拡張する場合は、ソースの追いやすさと均一化のために既存のスタイルを使う。**
 
-:::note
-一部のコードベースには本文書の標準から逸れる妥当な理由があります。たとえば `libc++` の場合、命名規則等がC++標準で定められています。適宜ご相談ください。
-:::
+一部のコードベースには本文書の標準から逸れる特別な理由があることに注意してください。たとえば `libc++` ですが、これは命名規則等がC++標準で定められているためです。
 
 <!--
 There are some conventions that are not uniformly followed in the code base
@@ -82,17 +79,16 @@ lot of code was written before they were put in place.  Our long term goal is
 for the entire codebase to follow the convention, but we explicitly *do not*
 want patches that do large-scale reformatting of existing code.  On the other
 hand, it is reasonable to rename the methods of a class if you're about to
-change it in some other way.  Just do the reformatting as a separate commit
-from the functionality change.
+change it in some other way.  Please commit such changes separately to
+make code review easier.
 
 The ultimate goal of these guidelines is to increase the readability and
-maintainability of our common source base. If you have suggestions for topics to
-be included, please mail them to `Chris <mailto:sabre@nondot.org>`_.
+maintainability of our common source base.
 -->
 
-コードベースにはここの命名規則等に従わないコードも含まれています。これは大量のコードを持ってきたばかりのためです。長期目標はコードベース全体が規則に沿うことですが、既存コードを大きく整形するパッチは明らかに**望んでいません**。一方、ほかの理由での変更時にそのクラスのメソッド名を直すことは合理的です。機能変更と別のコミットとして整形するだけです。
+コードベースにはここの命名規則等に従わないコードも含まれています。これは大量のコードを持ってきたばかりのためです。長期目標はコードベース全体が規則に沿うことですが、既存コードを大きく整形するパッチは明らかに**望んでいません**。一方、ほかの理由での変更時にそのクラスのメソッド名を直すことは合理的です。コードレビューしやすくするため、そういった変更はコミットを分けてください。
 
-本ガイドラインの究極の目標は、我々のコードベースの可読性と保守性を高めることです。もしトピックについて提案があれば相談ください。
+本ガイドラインの究極の目標は、我々のコードベースの可読性と保守性を高めることです。
 
 <!--
 Languages, Libraries, and Standards
@@ -120,16 +116,33 @@ C++ Standard Versions
 ### C++標準のバージョン
 
 <!--
-LLVM, Clang, and LLD are currently written using C++11 conforming code,
-although we restrict ourselves to features which are available in the major
-toolchains supported as host compilers. The LLDB project is even more
-aggressive in the set of host compilers supported and thus uses still more
-features. Regardless of the supported features, code is expected to (when
-reasonable) be standard, portable, and modern C++11 code. We avoid unnecessary
-vendor-specific extensions, etc.
+Unless otherwise documented, LLVM subprojects are written using standard C++14
+code and avoid unnecessary vendor-specific extensions.
+
+Nevertheless, we restrict ourselves to features which are available in the
+major toolchains supported as host compilers (see :doc:`GettingStarted` page,
+section `Software`).
+
+Each toolchain provides a good reference for what it accepts:
+
+* Clang: https://clang.llvm.org/cxx_status.html
+* GCC: https://gcc.gnu.org/projects/cxx-status.html#cxx14
+* MSVC: https://msdn.microsoft.com/en-us/library/hh567368.aspx
 -->
 
-LLVM、Clang、そしてLLDは現在C++11に準じて書かれていますが、開発環境としてサポートするホストコンパイラで利用可能な機能に限定しています。LLDBプロジェクトはよりアグレッシブにコンパイラを選んでいるため、より多くの機能を使えます。ホストコンパイラの機能にかかわらず、コードは（合理的な範囲で）規格に準拠しモダンでポータブルなC++11コードであることが期待されます。不要なベンダー拡張等は避けます。
+特に記載がない限り、LLVMサブプロジェクトはC++14標準を用いて、また不要なベンダー拡張は避けて書かれています。
+
+とはいえ、ホストコンパイラとしてサポートする主要なツールチェイン[^toolchain]で使える機能に限定しています。
+（[Getting Started with the LLVM System](https://releases.llvm.org/10.0.0/docs/GettingStarted.html)の`Software`セクションも参照のこと）
+[^toolchain]: 訳注：LLVM10.0.0ではClang 3.5、Apple Clang 6.0、GCC 5.1、Visual Studio 2017。
+
+どのツールチェインも、サポートする言語機能の良い資料を提供しています。
+
+- Clang: <https://clang.llvm.org/cxx_status.html>
+- GCC: <https://gcc.gnu.org/projects/cxx-status.html#cxx14>
+- MSVC: <https://msdn.microsoft.com/en-us/library/hh567368.aspx>[^MSVC_features]
+
+[^MSVC_features]: 訳注：対応すると思われる日本語ページ <https://docs.microsoft.com/ja-jp/cpp/visual-cpp-language-conformance>
 
 <!--
 C++ Standard Library
@@ -138,196 +151,30 @@ C++ Standard Library
 
 ### C++標準ライブラリ
 
-<!--
+<!-- 
 Use the C++ standard library facilities whenever they are available for
 a particular task. LLVM and related projects emphasize and rely on the standard
-library facilities for as much as possible. Common support libraries providing
-functionality missing from the standard library for which there are standard
-interfaces or active work on adding standard interfaces will often be
-implemented in the LLVM namespace following the expected standard interface.
+library facilities as much as possible.
 
-There are some exceptions such as the standard I/O streams library which are
-avoided. Also, there is much more detailed information on these subjects in the
-:doc:`ProgrammersManual`.
+We avoid some standard facilities, like the I/O streams, and instead use LLVM's
+streams library (raw_ostream_). More detailed information on these subjects is
+available in the :doc:`ProgrammersManual`.
+
+LLVM support libraries (for example, `ADT
+<https://github.com/llvm/llvm-project/tree/master/llvm/include/llvm/ADT>`_)
+implement functionality missing in the standard library. Such libraries are
+usually implemented in the ``llvm`` namespace and follow the expected standard
+interface, when there is one.
 -->
 
-C++標準ライブラリを活用してください。LLVMと関連プロジェクトでは、標準ライブラリをできるだけ重視し頼ります。標準ライブラリで実装が追い付いていない機能は、LLVM名前空間内に共通サポートライブラリとして、期待される標準インタフェースに沿って実装されます。
+C++標準ライブラリを活用してください。LLVMと関連プロジェクトでは、標準ライブラリをできるだけ重視し頼ります。
 
-いくつかの例外があります（標準I/Oストリームを避ける等）。詳細は[LLVM Programmer’s Manual](https://llvm.org/docs/ProgrammersManual.html)を参照してください。
+I/Oストリームのようないくつかの標準機構は避け、代わりにLLVMのストリームライブラリ（[raw_ostream](#raw_ostreamを使う)）を使います。これに関する詳細は[LLVM Programmer’s Manual](https://releases.llvm.org/10.0.0/docs/ProgrammersManual.html)にあります。
 
-<!--
-Supported C++11 Language and Library Features
----------------------------------------------
--->
-
-### 利用するC++11言語とライブラリの機能
+LLVMサポートライブラリ（たとえば[ADT](https://github.com/llvm/llvm-project/tree/main/llvm/include/llvm/ADT)）は、標準ライブラリに欠けた機能を実装します。それらライブラリでは通常``llvm``名前空間で実装され、期待される標準インタフェース（あれば）に従います。
 
 <!--
-While LLVM, Clang, and LLD use C++11, not all features are available in all of
-the toolchains which we support. The set of features supported for use in LLVM
-is the intersection of those supported in the minimum requirements described
-in the :doc:`GettingStarted` page, section `Software`.
-The ultimate definition of this set is what build bots with those respective
-toolchains accept. Don't argue with the build bots. However, we have some
-guidance below to help you know what to expect.
-
-Each toolchain provides a good reference for what it accepts:
-
-* Clang: https://clang.llvm.org/cxx_status.html
-* GCC: https://gcc.gnu.org/projects/cxx-status.html#cxx11
-* MSVC: https://msdn.microsoft.com/en-us/library/hh567368.aspx
-
-In most cases, the MSVC list will be the dominating factor. Here is a summary
-of the features that are expected to work. Features not on this list are
-unlikely to be supported by our host compilers.
--->
-
-LLVM内で用いるのは、C++11のうち[Getting Started with the LLVM System](https://releases.llvm.org/9.0.0/docs/GettingStarted.html)に記載された最小要件上[^min_req]でサポートされる機能に限ります。
-最終的な定義は「これら各ツールチェインでビルド可能であること」ですが、いくつか指針を示します。
-[^min_req]: 訳注：LLVM9.0.0ではClang 3.5、Apple Clang 6.0、GCC 5.1、Visual Studio 2017。
-
-どのツールチェインも、サポートする言語機能の良い資料を提供しています。
-
-- Clang: <https://clang.llvm.org/cxx_status.html>
-- GCC: <https://gcc.gnu.org/projects/cxx-status.html#cxx11>
-- MSVC: <https://msdn.microsoft.com/en-us/library/hh567368.aspx>[^MSVC_features]
-
-[^MSVC_features]: 訳注：対応すると思われる日本語ページ <https://docs.microsoft.com/ja-jp/cpp/visual-cpp-language-conformance>
-
-ほとんどの場合、MSVCが支配的要因となります。以下に動くであろう機能をざっと示します。リストにない機能はおそらく動かないでしょう。
-
-<!--
-* Rvalue references: N2118_
-
-  * But *not* Rvalue references for ``*this`` or member qualifiers (N2439_)
-
-* Static assert: N1720_
-* ``auto`` type deduction: N1984_, N1737_
-* Trailing return types: N2541_
-* Lambdas: N2927_
-
-  * But *not* lambdas with default arguments.
-
-* ``decltype``: N2343_
-* Nested closing right angle brackets: N1757_
-* Extern templates: N1987_
-* ``nullptr``: N2431_
-* Strongly-typed and forward declarable enums: N2347_, N2764_
-* Local and unnamed types as template arguments: N2657_
-* Range-based for-loop: N2930_
-
-  * But ``{}`` are required around inner ``do {} while()`` loops.  As a result,
-    ``{}`` are required around function-like macros inside range-based for
-    loops.
-
-* ``override`` and ``final``: N2928_, N3206_, N3272_
-* Atomic operations and the C++11 memory model: N2429_
-* Variadic templates: N2242_
-* Explicit conversion operators: N2437_
-* Defaulted and deleted functions: N2346_
-* Initializer lists: N2627_
-* Delegating constructors: N1986_
-* Default member initializers (non-static data member initializers): N2756_
-
-  * Feel free to use these wherever they make sense and where the `=`
-    syntax is allowed. Don't use braced initialization syntax.
-
-.. _N2118: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2006/n2118.html
-.. _N2439: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2439.htm
-.. _N1720: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2004/n1720.html
-.. _N1984: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2006/n1984.pdf
-.. _N1737: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2004/n1737.pdf
-.. _N2541: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2541.htm
-.. _N2927: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2009/n2927.pdf
-.. _N2343: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2343.pdf
-.. _N1757: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2005/n1757.html
-.. _N1987: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2006/n1987.htm
-.. _N2431: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2431.pdf
-.. _N2347: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2347.pdf
-.. _N2764: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2764.pdf
-.. _N2657: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2657.htm
-.. _N2930: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2009/n2930.html
-.. _N2928: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2009/n2928.htm
-.. _N3206: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2010/n3206.htm
-.. _N3272: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3272.htm
-.. _N2429: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2429.htm
-.. _N2242: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2242.pdf
-.. _N2437: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2437.pdf
-.. _N2346: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2346.htm
-.. _N2627: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2672.htm
-.. _N1986: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2006/n1986.pdf
-.. _N2756: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2756.htm
--->
-
-<!-- textlint-disable -->
-
-- 右辺値参照(Rvalue references): [N2118](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2006/n2118.html)
-  - ただし、 `*this` やメンバ関数への修飾については、右辺値参照 *禁止*
-- Static assert: [N1720](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2004/n1720.html)
-- `auto` 型推論: [N1984](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2006/n1984.pdf), [N1737](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2004/n1737.pdf)
-- 後置戻り型: [N2541](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2541.htm)
-- ラムダ: [N2927](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2009/n2927.pdf)
-  - ただし、デフォルト引数と合わせての利用は *禁止* 。
-- `decltype`: [N2343](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2343.pdf)
-- 連続する閉じ山かっこ: [N1757](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2005/n1757.html)
-- Extern templates: [N1987](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2006/n1987.htm)
-- `nullptr`: [N2431](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2431.pdf)
-- 厳密に型付けされ、前方宣言可能なenum: [N2347](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2347.pdf), [N2764](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2764.pdf)
-- ローカル型や無名型のテンプレート引数: [N2657](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2657.htm)
-- 範囲によるforループ: [N2930](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2009/n2930.html)
-  - `do {} while()` ループを内包する場合には `{}` が必須となります。そのため、ループ内で関数マクロを使う場合も `{}` が必要です。
-- `override` および `final`: [N2928](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2009/n2928.htm), [N3206](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2010/n3206.htm), [N3272](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3272.htm)
-- アトミック操作とC++11メモリモデル: [N2429](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2429.htm)
-- 可変個引数テンプレート: [N2242](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2242.pdf)
-- 明示的な変換演算子: [N2437](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2437.pdf)
-- 関数のdefault&delete宣言: [N2346](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2346.htm)
-- 初期化子リスト: [N2627](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2672.htm)
-- 委譲コンストラクタ: [N1986](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2006/n1986.pdf)
-- デフォルトのメンバー初期化子（非静的データメンバー初期化子）: [N2756](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2756.htm)
-  - `=`構文が許されているところでは自由に使えますが、braced初期化構文は*禁止*。
-
-<!-- textlint-enable -->
-
-<!--
-The supported features in the C++11 standard libraries are less well tracked,
-but also much greater. Most of the standard libraries implement most of C++11's
-library. The most likely lowest common denominator is Linux support. For
-libc++, the support is just poorly tested and undocumented but expected to be
-largely complete. YMMV. For libstdc++, the support is documented in detail in
-`the libstdc++ manual`_. There are some very minor missing facilities that are
-unlikely to be common problems, and there are a few larger gaps that are worth
-being aware of:
-
-* Not all of the type traits are implemented
-* No regular expression library.
-* While most of the atomics library is well implemented, the fences are
-  missing. Fortunately, they are rarely needed.
-* The locale support is incomplete.
-
-Other than these areas you should assume the standard library is available and
-working as expected until some build bot tells you otherwise. If you're in an
-uncertain area of one of the above points, but you cannot test on a Linux
-system, your best approach is to minimize your use of these features, and watch
-the Linux build bots to find out if your usage triggered a bug. For example, if
-you hit a type trait which doesn't work we can then add support to LLVM's
-traits header to emulate it.
-
-.. _the libstdc++ manual:
-  https://gcc.gnu.org/onlinedocs/gcc-4.8.0/libstdc++/manual/manual/status.html#status.iso.2011
--->
-
-ほとんどの標準ライブラリは、C++11標準をおおむね実装しています。`libc++`は、テストや文書化が不十分ですが、ほぼ完全な実装を見込めます。`libstdc++`の場合は、[the libstdc++ manual](https://gcc.gnu.org/onlinedocs/gcc-4.8.0/libstdc++/manual/manual/status.html#status.iso.2011)で詳細に文書化されています。まず問題ないでしょうが、注意を要する不足がいくつかあります。
-
-- type traitsの一部が未実装
-- 正規表現ライブラリなし
-- アトミックライブラリの内、フェンスがない
-- ロケールのサポートが不完全
-
-これら以外については、標準ライブラリが使えると想定して進めてよいでしょう。何かあれば自動ビルドで発覚します。たとえば、もしtype traitの未実装を踏んで見つけてしまった場合は、それをエミュレートするようLLVMのtraitsヘッダにサポートを追加できます。
-
-<!--
-
-Other Languages
+Guidelines for Go code
 ---------------
 
 Any code written in the Go programming language is not subject to the
@@ -347,16 +194,17 @@ this means are `Effective Go`_ and `Go Code Review Comments`_.
   https://github.com/golang/go/wiki/CodeReviewComments
 -->
 
-### それ以外の言語
+### Go言語のガイドライン
 
-Go言語で記述されたコードは、以降の書式ルールの対象にはなりません。その代わりに、 [gofmt](https://golang.org/cmd/gofmt/) ツールによる整形を採用しています。
+Go言語で記述されたコードは、以降の書式ルールの対象にはなりません。その代わりに、 [gofmt][_gofmt] ツールによる整形を採用しています。
 
-Goコードは慣習に倣うよう努めてください。[Effective Go](https://golang.org/doc/effective_go.html) および [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments) [^golang_CodeReviewComments]の2つが良いガイドラインとなります。
+Goコードは慣習に倣うよう努めてください。[Effective Go][_Effective Go] および [Go Code Review Comments][_Go Code Review Comments] の2つが良いガイドラインとなります。
 
-[^golang_CodeReviewComments]: 翻訳記事：[#golang CodeReviewComments 日本語翻訳](https://knsh14.github.io/translations/go-codereview-comments/)
+[_gofmt]: https://golang.org/cmd/gofmt/
+[_Effective Go]: https://golang.org/doc/effective_go.html
+[_Go Code Review Comments]: https://github.com/golang/go/wiki/CodeReviewComments
 
 <!--
-
 Mechanical Source Issues
 ========================
 
@@ -366,11 +214,10 @@ Source Code Formatting
 Commenting
 ^^^^^^^^^^
 
-Comments are one critical part of readability and maintainability.  Everyone
-knows they should comment their code, and so should you.  When writing comments,
-write them as English prose, which means they should use proper capitalization,
-punctuation, etc.  Aim to describe what the code is trying to do and why, not
-*how* it does it at a micro level. Here are a few critical things to document:
+Comments are important for readability and maintainability. When writing comments,
+write them as English prose, using proper capitalization, punctuation, etc.
+Aim to describe what the code is trying to do and why, not *how* it does it at
+a micro level. Here are a few important things to document:
 -->
 
 ## 機械的なソースの問題
@@ -388,8 +235,7 @@ File Headers
 """"""""""""
 
 Every source file should have a header on it that describes the basic purpose of
-the file.  If a file does not have a header, it should not be checked into the
-tree.  The standard header looks like this:
+the file. The standard header looks like this:
 
 .. code-block:: c++
 
@@ -412,7 +258,7 @@ tree.  The standard header looks like this:
 
 ##### ファイルのヘッダ
 
-すべてのソースファイルには、ファイルの基本的な目的を説明するヘッダコメントが必要です。ファイルにヘッダがない場合チェックイン禁止です。
+すべてのソースファイルには、ファイルの基本的な目的を説明するヘッダコメントが必要です。
 
 ```cpp:標準のファイルヘッダ
   //===-- llvm/Instruction.h - Instruction class definition -------*- C++ -*-===//
@@ -441,37 +287,35 @@ a C file (Emacs assumes ``.h`` files are C files by default).
 
     This tag is not necessary in ``.cpp`` files.  The name of the file is also
     on the first line, along with a very short description of the purpose of the
-    file.  This is important when printing out code and flipping though lots of
-    pages.
+    file.
 
 The next section in the file is a concise note that defines the license that the
 file is released under.  This makes it perfectly clear what terms the source
 code can be distributed under and should not be modified in any way.
 
-The main body is a ``doxygen`` comment (identified by the ``///`` comment
-marker instead of the usual ``//``) describing the purpose of the file.  The
-first sentence (or a passage beginning with ``\brief``) is used as an abstract.
-Any additional information should be separated by a blank line.  If an
-algorithm is being implemented or something tricky is going on, a reference
-to the paper where it is published should be included, as well as any notes or
-*gotchas* in the code to watch out for.
+The main body is a `Doxygen <http://www.doxygen.nl/>`_ comment (identified by
+the ``///`` comment marker instead of the usual ``//``) describing the purpose
+of the file.  The first sentence (or a passage beginning with ``\brief``) is
+used as an abstract.  Any additional information should be separated by a blank
+line.  If an algorithm is based on a paper or is described in another source,
+provide a reference.
 -->
 
 1行目の "`-*- C++ -*-`" は、EmacsにソースファイルがCではなくC++であることを教えます（Emacsはデフォルトで `.h`ファイルをCとして扱います）。
 
 :::note
-このタグは、`.cpp`ファイルでは不要です。最初の行にはファイル名と簡単な説明があります。これはコードを印刷して読む場合に重要です。
+このタグは、`.cpp`ファイルでは不要です。最初の行にはファイル名と短い説明があります。
 :::
 
 ファイルの次のセクションは、ファイルがどのライセンスの元でリリースされたかを簡潔に定義します。これにより、ソースコードがどのような条件の下で配布できるかが明確になります。そのため、どのような形であれ、変更してはいけません。
 
-本体は`doxygen`コメント（通常の`//`ではなく`///`コメントで識別されます）にてファイルの目的を説明します。最初の一文（または`\brief`で始まる段落）は概要として使われます。追加情報は空白行で区切ってください。アルゴリズムの実装では発行論文への参照を含めてください。任意のメモやコードの注意すべき*落とし穴*もあれば記載してください。
+本体は[Doxygen](https://www.doxygen.nl/)コメント（通常の`//`ではなく`///`コメントで識別されます）にてファイルの目的を説明します。最初の一文（または`\brief`で始まる段落）は概要として使われます。追加情報は空白行で区切ってください。アルゴリズムの実装でベースとする論文や資料があれば、その参照を含めてください。
 
 <!--
 Class overviews
 """""""""""""""
 
-Classes are one fundamental part of a good object oriented design.  As such, a
+Classes are a fundamental part of an object-oriented design.  As such, a
 class definition should have a comment block that explains what the class is
 used for and how it works.  Every non-trivial class is expected to have a
 ``doxygen`` comment block.
@@ -479,59 +323,46 @@ used for and how it works.  Every non-trivial class is expected to have a
 
 ##### クラス概要
 
-クラスは良いオブジェクト指向設計の基本的要素です。クラス定義は、クラスが何に使われ、どのように働くかを説明するコメントブロックを持つべきです。自明な場合を除き、`doxygen`コメントブロックを持つことが期待されます。
+クラスはオブジェクト指向設計の基本要素です。そのため、クラス定義にはそのクラスが何に使われどのように働くかを説明するコメントブロックが必要です。すべての重要なクラスに`doxygen`コメントブロックが必要です。
 
 <!--
 Method information
 """"""""""""""""""
 
-Methods defined in a class (as well as any global functions) should also be
-documented properly.  A quick note about what it does and a description of the
-borderline behaviour is all that is necessary here (unless something
-particularly tricky or insidious is going on).  The hope is that people can
-figure out how to use your interfaces without reading the code itself.
+Methods and global functions should also be documented.  A quick note about
+what it does and a description of the edge cases is all that is necessary here.
+The reader should be able to understand how to use interfaces without reading
+the code itself.
 
 Good things to talk about here are what happens when something unexpected
-happens: does the method return null?  Abort?  Format your hard disk?
+happens, for instance, does the method return null?
 -->
 
 ##### メソッド情報
 
-クラスのメソッド（およびグローバル関数）定義も適切に文書化してください。ここでは、何をするかについての簡単なメモや、境界での挙動の説明のみがあれば十分です（特に凝ったことをしていない場合）。理想は、コードを読まずとも使い方が理解できることです。
+メソッドとグローバル関数も文書化してください。ここでは、何をするかについての簡単なメモや、エッジケースでの挙動の説明のみがあれば十分です。読者はコードを読まずとも使い方を理解できる必要があります。
 
-想定外の事態に何が起きるかについて触れるとよいでしょう。nullを返す？　強制終了？　HDD初期化？
+想定外の事態に何が起きるかについて触れるとよいでしょう。たとえばメソッドがnullを返した場合など。
 
 <!--
 Comment Formatting
 ^^^^^^^^^^^^^^^^^^
 
-In general, prefer C++ style comments (``//`` for normal comments, ``///`` for
-``doxygen`` documentation comments).  They take less space, require
-less typing, don't have nesting problems, etc.  There are a few cases when it is
-useful to use C style (``/* */``) comments however:
+In general, prefer C++-style comments (``//`` for normal comments, ``///`` for
+``doxygen`` documentation comments).  There are a few cases when it is
+useful to use C-style (``/* */``) comments however:
 
-#. When writing C code: Obviously if you are writing C code, use C style
-   comments.
+#. When writing C code to be compatible with C89.
 
 #. When writing a header file that may be ``#include``\d by a C source file.
 
-#. When writing a source file that is used by a tool that only accepts C style
+#. When writing a source file that is used by a tool that only accepts C-style
    comments.
 
 #. When documenting the significance of constants used as actual parameters in
    a call. This is most helpful for ``bool`` parameters, or passing ``0`` or
-   ``nullptr``. Typically you add the formal parameter name, which ought to be
+   ``nullptr``. The comment should contain the parameter name, which ought to be
    meaningful. For example, it's not clear what the parameter means in this call:
-
-   .. code-block:: c++
-
-     Object.emitName(nullptr);
-
-   An in-line C-style comment makes the intent obvious:
-
-   .. code-block:: c++
-
-     Object.emitName(/*Prefix=*/nullptr);
 
 Commenting out large blocks of code is discouraged, but if you really have to do
 this (for documentation purposes or as a suggestion for debug printing), use
@@ -541,12 +372,12 @@ than C style comments.
 
 #### コメント書式
 
-通常は、C++スタイルのコメントを用います（普通のコメントに`//`、`doxygen`の文書化コメントに`///`）。省スペースで、タイプ数も少なく、入れ子での問題等もありません。ですが、以下のようにCスタイル（`/* */`）を用いたほうが良い場合もあります。
+通常は、C++スタイルのコメントを用います（普通のコメントに`//`、`doxygen`の文書化コメントに`///`）。以下のようにCスタイル（`/* */`）を用いたほうが良い場合もあります。
 
-1. Cコードファイル
-1. Cソースファイルから`#include`されるヘッダファイル
-1. Cスタイルのコメントしか受け付けないツール向けのファイル
-1. 実引数での定数の意味を説明する場合。特に`bool`パラメータや`0`、`nullptr`で有用です。通常は（meaningfulである）正式な引数名です。たとえば、この呼び出しでパラメータの意味は不明確です。
+1. C89互換のCコードファイルを書く場合。
+2. Cソースファイルから`#include`されるヘッダファイルを書く場合。
+3. Cスタイルのコメントしか受け付けないツール向けのファイルを各場合。
+4. 実引数での定数の意味を説明する場合。特に`bool`パラメータや`0`、`nullptr`で有用です。引数名（meaningfulである）を含めます。たとえば、この呼び出しでパラメータの意味は不明確です。
 
 ```cpp
 Object.emitName(nullptr);
@@ -568,7 +399,7 @@ Use the ``\file`` command to turn the standard file header into a file-level
 comment.
 
 Include descriptive paragraphs for all public interfaces (public classes,
-member and non-member functions).  Don't just restate the information that can
+member and non-member functions).  Avoid restating the information that can
 be inferred from the API name.  The first sentence (or a paragraph beginning
 with ``\brief``) is used as an abstract. Try to use a single sentence as the
 ``\brief`` adds visual clutter.  Put detailed discussion into separate
@@ -593,7 +424,7 @@ command.
 
 `\file`コマンドを使い、標準のファイルヘッダをファイルレベルのコメントにします。
 
-すべての公開インタフェース（publicクラス、メンバーと非メンバー関数）について説明する段落を含めます。API名を読み替えただけの記載にはしないでください。最初の一文（または`\brief`で始まる段落）は概要として使われます。`\brief`は目が滑るため、単一の文を使ってみてください。詳細な議論は段落を分けてください。
+すべての公開インタフェース（publicクラス、メンバーと非メンバー関数）について説明する段落を含めます。API名を読み替えただけの記載は避けます。最初の一文（または`\brief`で始まる段落）は概要として使われます。`\brief`は目が滑るため、単一の文を使ってみてください。詳細な議論は段落を分けます。
 
 段落内で引数名を参照するには、`\p name`コマンドを使います。新たな段落が始まってしまうため、`\arg name`コマンドは使わないでください。
 
@@ -672,121 +503,59 @@ to the correct declaration.
 コメントの先頭に関数名やクラス名をコピーしないでください。関数やクラスが文書化されていることは明らかであり、Doxygenはコメントを正しい宣言に対応付けられます。
 
 <!--
-Wrong:
+Avoid:
 
 .. code-block:: c++
 
-  // In Something.h:
+  // Example.h:
 
-  /// Something - An abstraction for some complicated thing.
-  class Something {
-  public:
-    /// fooBar - Does foo and bar.
-    void fooBar();
-  };
+  // example - Does something important.
+  void example();
 
-  // In Something.cpp:
+  // Example.cpp:
 
-  /// fooBar - Does foo and bar.
-  void Something::fooBar() { ... }
+  // example - Does something important.
+  void example() { ... }
 -->
 
-```cpp:誤
-  // In Something.h:
+```cpp:避ける
+// Example.h:
 
-  /// Something - An abstraction for some complicated thing.
-  class Something {
-  public:
-    /// fooBar - Does foo and bar.
-    void fooBar();
-  };
+// example - Does something important.
+void example();
 
-  // In Something.cpp:
+// Example.cpp:
 
-  /// fooBar - Does foo and bar.
-  void Something::fooBar() { ... }
+// example - Does something important.
+void example() { ... }
 ```
 
 <!--
-Correct:
+Preferred:
 
 .. code-block:: c++
 
-  // In Something.h:
+  // Example.h:
 
-  /// An abstraction for some complicated thing.
-  class Something {
-  public:
-    /// Does foo and bar.
-    void fooBar();
-  };
+  /// Does something important.
+  void example();
 
-  // In Something.cpp:
+  // Example.cpp:
 
-  // Builds a B-tree in order to do foo.  See paper by...
-  void Something::fooBar() { ... }
+  /// Builds a B-tree in order to do foo.  See paper by...
+  void example() { ... }
 -->
 
-```cpp:正
-  // In Something.h:
+```cpp:優先
+// Example.h:
 
-  /// An abstraction for some complicated thing.
-  class Something {
-  public:
-    /// Does foo and bar.
-    void fooBar();
-  };
+/// Does something important.
+void example();
 
-  // In Something.cpp:
+// Example.cpp:
 
-  // Builds a B-tree in order to do foo.  See paper by...
-  void Something::fooBar() { ... }
-```
-
-<!--
-It is not required to use additional Doxygen features, but sometimes it might
-be a good idea to do so.
-
-Consider:
-
-* adding comments to any narrow namespace containing a collection of
-  related functions or types;
-
-* using top-level groups to organize a collection of related functions at
-  namespace scope where the grouping is smaller than the namespace;
-
-* using member groups and additional comments attached to member
-  groups to organize within a class.
-
-For example:
-
-.. code-block:: c++
-
-  class Something {
-    /// \name Functions that do Foo.
-    /// @{
-    void fooBar();
-    void fooBaz();
-    /// @}
-    ...
-  };
--->
-
-Doxygenのさらなる機能を使う必要はありませんが、使ったほうがよい場合もあります。
-
-- 関連する関数や型を含む小さな名前空間へのコメント追加
-- 名前空間内で関連する関数を整理するための、トップレベルのグループの使用
-- クラス内のメンバーを整理するための、グループ追加
-
-```cpp:例
-class Something {
-  /// \name Functions that do Foo.
-  /// @{
-  void fooBar();
-  void fooBaz();
-  /// @}
-  ...
-};
+/// Builds a B-tree in order to do foo.  See paper by...
+void example() { ... }
 ```
 
 <!--
@@ -848,26 +617,23 @@ LLVMプロジェクトとサブプロジェクトのヘッダでは、同様の�
 Source Code Width
 ^^^^^^^^^^^^^^^^^
 
-Write your code to fit within 80 columns of text.  This helps those of us who
-like to print out code and look at your code in an ``xterm`` without resizing
-it.
+Write your code to fit within 80 columns.
 
-The longer answer is that there must be some limit to the width of the code in
-order to reasonably allow developers to have multiple files side-by-side in
+There must be some limit to the width of the code in
+order to allow developers to have multiple files side-by-side in
 windows on a modest display.  If you are going to pick a width limit, it is
 somewhat arbitrary but you might as well pick something standard.  Going with 90
 columns (for example) instead of 80 columns wouldn't add any significant value
 and would be detrimental to printing out code.  Also many other projects have
 standardized on 80 columns, so some people have already configured their editors
 for it (vs something else, like 90 columns).
-
-This is one of many contentious issues in coding standards, but it is not up for
-debate.
 -->
 
 #### ソースコードの幅
 
-80桁に収めてください。これは、コードを印刷したり、`xterm`上でサイズを変えず読みたい人の助けになります。また、多くの他プロジェクトでも80桁が採用されているため、みなエディタをそのように設定しています。
+80桁に収めてください。
+
+ディスプレイに複数のファイルを並べて表示するために、コード幅にはある程度の制限が必要です。その選択においては、多少恣意的ですが標準的なものを選ぶべきです。80桁の代わりたとえば90桁にしても、大した価値も得られず印刷にも不便です。また多くの他プロジェクトでは80桁が採用されているため、みなエディタをそのように設定しています。
 
 <!--
 Whitespace
@@ -879,52 +645,31 @@ like; this is fine.  What isn't fine is that different editors/viewers expand
 tabs out to different tab stops.  This can cause your code to look completely
 unreadable, and it is not worth dealing with.
 
-As always, follow the `Golden Rule`_ above: follow the style of
-existing code if you are modifying and extending it.  If you like four spaces of
-indentation, **DO NOT** do that in the middle of a chunk of code with two spaces
-of indentation.  Also, do not reindent a whole source file: it makes for
-incredible diffs that are absolutely worthless.
+As always, follow the `Golden Rule`_ above: follow the style of existing code
+if you are modifying and extending it.
 
-Do not commit changes that include trailing whitespace. If you find trailing
-whitespace in a file, do not remove it unless you're otherwise changing that
-line of code. Some common editors will automatically remove trailing whitespace
-when saving a file which causes unrelated changes to appear in diffs and
-commits.
+Do not add trailing whitespace.  Some common editors will automatically remove
+trailing whitespace when saving a file which causes unrelated changes to appear
+in diffs and commits.
 -->
 
 #### 空白
 
 ソースファイルではタブよりもスペースがよいです。タブは表示環境ごとに異なるタブストップで展開され崩れる恐れがあります。
 
-いつものように[原則](#前書き)に従いましょう。既存コードに手を入れる場合、既存のスタイルに準じます。4スペースのインデントが好きでも、2スペースインデントコードの中ではそう**しないでください**。また、ファイル全体のインデント修正もしないでください。大量の無意味な差分を生じます。
+いつものように[原則](#前書き)に従いましょう。既存コードに手を入れる場合、既存のスタイルに準じます。
 
-末尾の空白を含む変更をコミットしないでください。もしファイルで末尾の空白を見つけても、その行を変える場合を除き、削さないでください。 一部のエディタは、ファイル保存時に末尾の空白を自動的に削除します。これにより、無関係な変更が差分とコミットに現れます。
-
-<!--
-Indent Code Consistently
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Okay, in your first year of programming you were told that indentation is
-important. If you didn't believe and internalize this then, now is the time.
-Just do it. With the introduction of C++11, there are some new formatting
-challenges that merit some suggestions to help have consistent, maintainable,
-and tool-friendly formatting and indentation.
--->
-
-#### インデントの一貫
-
-C++11の導入に際し、一貫性・保守性・ツールフレンドリーなフォーマットとインデントを実現するために、いくつか新しい課題があります。
-コードブロックのための標準的なインデントは、2スペースです。
+末尾空白（`trailing whitespace`）を追加しないでください。 よくあるエディタはファイル保存時に末尾の空白を自動的に削除するため、差分とコミットに無関係な変更が現れてしまいます。
 
 <!--
 Format Lambdas Like Blocks Of Code
 """"""""""""""""""""""""""""""""""
 
-When formatting a multi-line lambda, format it like a block of code, that's
-what it is. If there is only one multi-line lambda in a statement, and there
-are no expressions lexically after it in the statement, drop the indent to the
-standard two space indent for a block of code, as if it were an if-block opened
-by the preceding part of the statement:
+When formatting a multi-line lambda, format it like a block of code. If there
+is only one multi-line lambda in a statement, and there are no expressions
+lexically after it in the statement, drop the indent to the standard two space
+indent for a block of code, as if it were an if-block opened by the preceding
+part of the statement:
 
 .. code-block:: c++
 
@@ -939,7 +684,7 @@ by the preceding part of the statement:
 
 ##### ラムダはコードブロックと同様に整形
 
-複数行のラムダを整形する際は、コードブロックと同様に整形してください。もし文中に複数行のラムダしかなく、その後に式もない場合、ifブロック同様にインデントを下げます。
+複数行のラムダは、コードブロックと同様に整形してください。もし文中に複数行のラムダひとつしかなく、その後に式もない場合、ifブロック同様にインデントを下げます。
 
 ```cpp
 std::sort(foo.begin(), foo.end(), [&](Foo a, Foo b) -> bool {
@@ -953,19 +698,17 @@ std::sort(foo.begin(), foo.end(), [&](Foo a, Foo b) -> bool {
 
 <!--
 To take best advantage of this formatting, if you are designing an API which
-accepts a continuation or single callable argument (be it a functor, or
+accepts a continuation or single callable argument (be it a function object, or
 a ``std::function``), it should be the last argument if at all possible.
 
-If there are multiple multi-line lambdas in a statement, or there is anything
-interesting after the lambda in the statement, indent the block two spaces from
-the indent of the ``[]``:
+If there are multiple multi-line lambdas in a statement, or additional
+parameters after the lambda, indent the block two spaces from the indent of the
+``[]``:
 -->
 
-このフォーマットを活かすため、新規APIで継続や単一の呼び出し可能な引数（ファンクタ[^functor]や`std::function`）をとる場合、なるべく最後の引数にします。
+このフォーマットを活かすため、新規APIで継続や単一の呼び出し可能な引数（関数オブジェクトや`std::function`）をとる場合、なるべく最後の引数にします。
 
-[^functor]: 訳注：`operator()`を持つクラス。
-
-文の中にいくつも複数行のラムダがあったり、ラムダの後ろに何かが続く場合には、`[]`から2スペースインデントします。
+文の中にいくつも複数行のラムダがあったり、ラムダの後ろに追加パラメータがある場合には、`[]`から2スペースインデントします。
 
 <!--
 .. code-block:: c++
@@ -1005,18 +748,16 @@ dyn_switch(V->stripPointerCasts(),
 Braced Initializer Lists
 """"""""""""""""""""""""
 
-With C++11, there are significantly more uses of braced lists to perform
-initialization. These allow you to easily construct aggregate temporaries in
-expressions among other niceness. They now have a natural way of ending up
-nested within each other and within function calls in order to build up
-aggregates (such as option structs) from local variables. To make matters
-worse, we also have many more uses of braces in an expression context that are
-*not* performing initialization.
+Starting from C++11, there are significantly more uses of braced lists to
+perform initialization. For example, they can be used to construct aggregate
+temporaries in expressions. They now have a natural way of ending up nested
+within each other and within function calls in order to build up aggregates
+(such as option structs) from local variables.
 -->
 
 ##### ブレース初期化子リスト
 
-C++11では、初期化用のブレースリストにかなり多くの用途があります。これらは簡単に式内で一時的な生成ができます。今ではこれらは、入れ子になったり、関数呼び出し内でローカル変数からのまとめ（オプション構造体等）を生成したりできます。さらに悪いことに、初期化が実行されて*いない*式中でもまた多様な使い道があります。
+C++11以降、初期化でのブレースリスト利用が大幅に増えています。たとえば、式内で一時的な集約を作るために使えます。ローカル変数から集約（オプション構造体等）を作るために、お互いの入れ子や関数呼び出し内で無理なく完結します。
 
 <!--
 The historically common formatting of braced initialization of aggregate
@@ -1062,25 +803,9 @@ Language and Compiler Issues
 Treat Compiler Warnings Like Errors
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If your code has compiler warnings in it, something is wrong --- you aren't
-casting values correctly, you have "questionable" constructs in your code, or
-you are doing something legitimately wrong.  Compiler warnings can cover up
-legitimate errors in output and make dealing with a translation unit difficult.
--->
-
-### 言語とコンパイラの問題
-
-#### コンパイラ警告はエラーと同様に扱う
-
-あなたのコードでコンパイラが警告を出す場合は、何かが間違っています。正確にキャストしていない、「疑わしい」生成、または何か合法的な誤りを犯しています。コンパイラ警告はエラーを覆い隠して、翻訳単位を扱いづらくする可能性があります。
-
-<!--
-It is not possible to prevent all warnings from all compilers, nor is it
-desirable.  Instead, pick a standard compiler (like ``gcc``) that provides a
-good thorough set of warnings, and stick to it.  At least in the case of
-``gcc``, it is possible to work around any spurious errors by changing the
-syntax of the code slightly.  For example, a warning that annoys me occurs when
-I write code like this:
+Compiler warnings are often useful and help improve the code.  Those that are
+not useful, can be often suppressed with a small code change. For example, an
+assignment in the ``if`` condition is often a typo:
 
 .. code-block:: c++
 
@@ -1089,7 +814,11 @@ I write code like this:
   }
 -->
 
-すべてのコンパイラ上ですべての警告を防ぐことは現実的でありません。代わりに、良い徹底した警告セットを提供する標準的なコンパイラ（`gcc`など）を選択し、それに固執してください。少なくとも`gcc`の場合には、若干のコードの構文を変更するだけで、偽の警告を回避できます。たとえば、このようなコードを書く場合に悩ましい警告が出ます。
+### 言語とコンパイラの問題
+
+#### コンパイラ警告はエラーと同様に扱う
+
+コンパイラ警告はたいていコードの改善に役立ちます。役に立たないものは、多くの場合コードを少し変えるだけで抑えられます。たとえば、`if`条件での代入はたいていtypoです。
 
 ```cpp
 if (V = getValue()) {
@@ -1098,10 +827,8 @@ if (V = getValue()) {
 ```
 
 <!--
-``gcc`` will warn me that I probably want to use the ``==`` operator, and that I
-probably mistyped it.  In most cases, I haven't, and I really don't want the
-spurious errors.  To fix this particular problem, I rewrite the code like
-this:
+Several compilers will print a warning for the code above. It can be suppressed
+by adding parentheses:
 
 .. code-block:: c++
 
@@ -1113,7 +840,7 @@ which shuts ``gcc`` up.  Any ``gcc`` warning that annoys you can be fixed by
 massaging the code appropriately.
 -->
 
-`gcc`は、`==`演算子のタイプミスの疑いを警告します。ほとんどの場合はそうでなく、偽のエラーを抑制したいです。この場合の解決としては、コードをこのように書き換えます。
+いくつかのコンパイラは上記のコードに警告します。括弧を足せば抑えられます。
 
 ```cpp
 if ((V = getValue())) {
@@ -1121,106 +848,66 @@ if ((V = getValue())) {
 }
 ```
 
-これで`gcc`は黙ります。あなたを悩ます任意の`gcc`警告は、コードを適切に整えることで修正できます。
-
 <!--
 Write Portable Code
 ^^^^^^^^^^^^^^^^^^^
 
-In almost all cases, it is possible and within reason to write completely
-portable code.  If there are cases where it isn't possible to write portable
-code, isolate it behind a well defined (and well documented) interface.
-
-In practice, this means that you shouldn't assume much about the host compiler
-(and Visual Studio tends to be the lowest common denominator).  If advanced
-features are used, they should only be an implementation detail of a library
-which has a simple exposed API, and preferably be buried in ``libSystem``.
+In almost all cases, it is possible to write completely portable code.  When
+you need to rely on non-portable code, put it behind a well-defined and
+well-documented interface.
 -->
 
 #### 移植性のあるコードを書く
 
-ほとんどの場合、完全に移植性のあるコードを書けます。不可能な場合は、明確に定義された（そしてきちんと文書化された）インタフェースの背後に隔離します。
-
-これはあなたがホストコンパイラについて多くを期待してはならないことを意味します（そしてVisual Studioが最低基準となる傾向があります）。もしコンパイラ依存の高度な機能を使う場合、それらはシンプルな外部APIを持つライブラリの詳細実装であるべきです。`libSystem`内に埋め込まれることが望ましいです。
+ほとんどの場合、完全に移植性のあるコードを書けます。移植性のないコードに頼らざるを得ない場合は、明確に定義されよく文書化されたインタフェースの背後に置きます。
 
 <!--
 Do not use RTTI or Exceptions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In an effort to reduce code and executable size, LLVM does not use RTTI
-(e.g. ``dynamic_cast<>;``) or exceptions.  These two language features violate
-the general C++ principle of *"you only pay for what you use"*, causing
-executable bloat even if exceptions are never used in the code base, or if RTTI
-is never used for a class.  Because of this, we turn them off globally in the
-code.
+In an effort to reduce code and executable size, LLVM does not use exceptions
+or RTTI (`runtime type information
+<https://en.wikipedia.org/wiki/Run-time_type_information>`_, for example,
+``dynamic_cast<>``).
 
 That said, LLVM does make extensive use of a hand-rolled form of RTTI that use
 templates like :ref:`isa\<>, cast\<>, and dyn_cast\<> <isa>`.
 This form of RTTI is opt-in and can be
-:doc:`added to any class <HowToSetUpLLVMStyleRTTI>`. It is also
-substantially more efficient than ``dynamic_cast<>``.
+:doc:`added to any class <HowToSetUpLLVMStyleRTTI>`.
 -->
 
 #### RTTIや例外を使わない
 
-コードと実行ファイルのサイズを減らすために、LLVMはRTTI（たとえば`dynamic_cast<>`）や例外を使いません。これら2つの言語機能は、一般的なC++の **「従量課金」** 原則[^principle]に反して実行ファイルの膨張を引き起こします。たとえ例外がコードで使われなかったり、RTTIがクラスで使われなかったとしてもです。このため、私たちはコード全体でそれらを無効にします。
+コードと実行ファイルのサイズを減らすために、LLVMでは例外やRTTI（[実行時型情報](https://ja.wikipedia.org/wiki/%E5%AE%9F%E8%A1%8C%E6%99%82%E5%9E%8B%E6%83%85%E5%A0%B1)、たとえば`dynamic_cast<>`）は使いません。
 
-[^principle]: 訳注：いわゆる[Zero-overhead principle](https://en.cppreference.com/w/cpp/language/Zero-overhead_principle)
-
-LLVMはRTTIを手で展開した [isa\<>、cast\<>、そしてdyn_cast\<>](https://releases.llvm.org/9.0.0/docs/ProgrammersManual.html#isa) のようなテンプレートを広く用います。RTTIのこの形式は、[任意のクラス](https://releases.llvm.org/9.0.0/docs/HowToSetUpLLVMStyleRTTI.html)にオプトインで追加できます。これらはおおむね`dynamic_cast<>`よりも効率的です。
+とはいえ、LLVMではRTTIを手で展開した [isa\<>、cast\<>、そしてdyn_cast\<>](https://releases.llvm.org/10.0.0/docs/ProgrammersManual.html#isa) のようなテンプレートを広く用います。RTTIのこの形式は、[任意のクラス](https://releases.llvm.org/10.0.0/docs/HowToSetUpLLVMStyleRTTI.html)にオプトインで追加できます。
 
 <!--
 .. _static constructor:
 Do not use Static Constructors
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Static constructors and destructors (e.g. global variables whose types have a
+Static constructors and destructors (e.g., global variables whose types have a
 constructor or destructor) should not be added to the code base, and should be
-removed wherever possible.  Besides `well known problems
-<https://yosefk.com/c++fqa/ctors.html#fqa-10.12>`_ where the order of
-initialization is undefined between globals in different source files, the
-entire concept of static constructors is at odds with the common use case of
-LLVM as a library linked into a larger application.
-  
-Consider the use of LLVM as a JIT linked into another application (perhaps for
-`OpenGL, custom languages <https://llvm.org/Users.html>`_, `shaders in movies
-<https://llvm.org/devmtg/2010-11/Gritz-OpenShadingLang.pdf>`_, etc). Due to the
-design of static constructors, they must be executed at startup time of the
-entire application, regardless of whether or how LLVM is used in that larger
-application.  There are two problems with this:
+removed wherever possible.
+
+Globals in different source files are initialized in `arbitrary order
+<https://yosefk.com/c++fqa/ctors.html#fqa-10.12>`, making the code more
+difficult to reason about.
+
+Static constructors have negative impact on launch time of programs that use
+LLVM as a library. We would really like for there to be zero cost for linking
+in an additional LLVM target or other library into an application, but static
+constructors undermine this goal.
 -->
 
 #### 静的コンストラクタを使わない
 
-静的コンストラクタとデストラクタ（たとえば、コンストラクタやデストラクタを持つ型のグローバル変数）はコードベースに追加されるべきではなく、可能な限り除かなければなりません。ソースファイル間での初期化順が未定義であるという[よく知られた問題](https://yosefk.com/c++fqa/ctors.html#fqa-10.12)もあります。静的コンストラクタの全体コンセプトは、大規模なアプリケーションにライブラリとしてリンクされるLLVMの一般的な使われ方と合いません。
+静的コンストラクタとデストラクタ（たとえば、コンストラクタやデストラクタを持つ型のグローバル変数）はコードベースに追加されるべきではなく、可能な限り除かなければなりません。
 
-別のアプリケーション（[OpenGL, custom languages](https://llvm.org/Users.html), [shaders in movies](https://llvm.org/devmtg/2010-11/Gritz-OpenShadingLang.pdf), 等）でJIT用にLLVMがリンクされた場合を考えてみましょう。静的コンストラクタの設計に起因して、LLVMがいつ使われるかにかかわらず、それらはアプリケーションの起動時に実行されるでしょう。これには2つの問題があります。
+異なるソースファイル内のグローバル変数は[任意の順序](https://yosefk.com/c++fqa/ctors.html#fqa-10.12)で初期化されるため、コードの推測が難しくなります。
 
-<!--
-* The time to run the static constructors impacts startup time of applications
-  --- a critical time for GUI apps, among others.
-
-* The static constructors cause the app to pull many extra pages of memory off
-  the disk: both the code for the constructor in each ``.o`` file and the small
-  amount of data that gets touched. In addition, touched/dirty pages put more
-  pressure on the VM system on low-memory machines.
-
-We would really like for there to be zero cost for linking in an additional LLVM
-target or other library into an application, but static constructors violate
-this goal.
-
-That said, LLVM unfortunately does contain static constructors.  It would be a
-`great project <https://llvm.org/PR11944>`_ for someone to purge all static
-constructors from LLVM, and then enable the ``-Wglobal-constructors`` warning
-flag (when building with Clang) to ensure we do not regress in the future.
--->
-
-- 静的コンストラクタの処理時間がアプリケーションの起動時間に影響します。特にGUIアプリケーションでは致命的な時間です。
-- 静的コンストラクタにより、アプリが多くの余分なページメモリをディスクから引き出します。各`.o`ファイル内のコンストラクタコードとわずかなデータ。また、touched/dirtyページは低メモリマシン上のVMにさらなる負担を加えます。
-
-私たちは、追加のLLVMターゲットやアプリケーションのライブラリへのリンクがゼロコストであることを強く望みますが、静的コンストラクタはこの目標に反します。
-
-とはいえ、LLVMは残念ながら静的コンストラクタを含んでいます。[great project](https://llvm.org/PR11944)にてLLVMからすべての静的コンストラクタが取り除こうとしています。達成の暁には将来退行しないように`-Wglobal-constructors`警告フラグ（Clangビルドの場合）を有効にします。
+静的コンストラクタは、LLVMをライブラリとして使うプログラムの起動時間に悪影響を及ぼします。私たちは、追加のLLVMターゲットやアプリケーションのライブラリへのリンクがゼロコストであることを強く望みますが、静的コンストラクタはこの目標を覆します。
 
 <!--
 Use of ``class`` and ``struct`` Keywords
@@ -1230,17 +917,11 @@ In C++, the ``class`` and ``struct`` keywords can be used almost
 interchangeably. The only difference is when they are used to declare a class:
 ``class`` makes all members private by default while ``struct`` makes all
 members public by default.
-
-Unfortunately, not all compilers follow the rules and some will generate
-different symbols based on whether ``class`` or ``struct`` was used to declare
-the symbol (e.g., MSVC).  This can lead to problems at link time.
 -->
 
 #### `class`と`struct`キーワードの使い方
 
 C++では、`class`と`struct`キーワードはほぼ同じ意味で使えます。唯一の違いはクラス宣言の場合です。`class`はデフォルトでメンバーがprivateですが、`struct`はpublicです。
-
-残念ながら、一部のコンパイラは規則に従いません。定義に用いられたのが`class`か`struct`かにより、異なるシンボルを生成します（MSVCなど）。これは、リンク時に問題となり得ます。
 
 <!--
 * All declarations and definitions of a given ``class`` or ``struct`` must use
@@ -1248,28 +929,33 @@ C++では、`class`と`struct`キーワードはほぼ同じ意味で使えま�
 
 .. code-block:: c++
 
-  class Foo;
+  // Avoid if `Example` is defined as a struct.
+  class Example;
 
-  // Breaks mangling in MSVC.
-  struct Foo { int Data; };
+  // OK.
+  struct Example;
+
+  struct Example { ... };
 -->
 
 - 宣言と定義では、同じキーワードを使う必要があります。`class`での宣言に対しては`class`での定義が必要です。`struct`でも同様です。
 
 ```cpp:例
-class Foo;
+// Avoid if `Example` is defined as a struct.
+class Example;
 
-// Breaks mangling in MSVC.
-struct Foo { int Data; };
+// OK.
+struct Example;
+
+struct Example { ... };
 ```
 
 <!--
-* As a rule of thumb, ``struct`` should be kept to structures where *all*
-  members are declared public.
+* ``struct`` should be used when *all* members are declared public.
 
 .. code-block:: c++
 
-  // Foo feels like a class... this is strange.
+  // Avoid using `struct` here, use `class` instead.
   struct Foo {
   private:
     int Data;
@@ -1279,17 +965,17 @@ struct Foo { int Data; };
     void setData(int D) { Data = D; }
   };
 
-  // Bar isn't POD, but it does look like a struct.
+  // OK to use `struct`: all members are public.
   struct Bar {
     int Data;
     Bar() : Data(0) { }
   };
 -->
 
-- 経験則として、`struct`は*すべての*メンバーがpublic宣言されている構造にのみ用いるべきです。
+- *すべての*メンバーがpublic宣言されている場合には`struct`を用いるべきです。
 
 ```cpp
-// Foo feels like a class... this is strange.
+// Avoid using `struct` here, use `class` instead.
 struct Foo {
 private:
   int Data;
@@ -1299,7 +985,7 @@ public:
   void setData(int D) { Data = D; }
 };
 
-// Bar isn't POD, but it does look like a struct.
+// OK to use `struct`: all members are public.
 struct Bar {
   int Data;
   Bar() : Data(0) { }
@@ -1310,9 +996,9 @@ struct Bar {
 Do not use Braced Initializer Lists to Call a Constructor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In C++11 there is a "generalized initialization syntax" which allows calling
-constructors using braced initializer lists. Do not use these to call
-constructors with any interesting logic or if you care that you're calling some
+Starting from C++11 there is a "generalized initialization syntax" which allows
+calling constructors using braced initializer lists. Do not use these to call
+constructors with non-trivial logic or if you care that you're calling some
 *particular* constructor. Those should look like function calls using
 parentheses rather than like aggregate initialization. Similarly, if you need
 to explicitly name the type and call its constructor to create a temporary,
@@ -1323,7 +1009,7 @@ something notionally equivalent.
 
 #### ブレース初期化子リストはコンストラクタ呼び出しに使わない
 
-C++11ではブレース初期化子リストを使ってコンストラクタを呼べる「一般初期化構文（generalized initialization syntax）」があります。ロジックを含むコンストラクタや*特定の*コンストラクタを呼び出さなければいけない場合、これらを使わないでください。それらは集約初期化などではなく、むしろ括弧を使った関数呼び出しでしょう。同様に、名前の付いた型をその場で生成するためにコンストラクタを呼ぶ場合、ブレース初期化子リストを使わないでください。代わりに、集約等ではブレース初期化リスト（一時的な型を除く）を使います。
+C++11以降では「一般初期化構文（generalized initialization syntax）」があり、ブレース初期化子リストを使ってコンストラクタを呼べます。重要なロジックや*特定の*コンストラクタを呼び出したい場合、これらを使わないでください。それらは集約初期化というよりも括弧を使った関数呼び出しでしょう。同様に、名前の付いた型をその場で生成するためにコンストラクタを呼ぶ場合、ブレース初期化子リストを使わないでください。代わりに、集約等ではブレース初期化リスト（一時的な型を除く）を使います。
 
 <!--
 Examples:
@@ -1341,10 +1027,10 @@ Examples:
     // ...
   };
 
-  // The Foo constructor call is very deliberate, no braces.
+  // The Foo constructor call is reading a file, don't use braces to call it.
   std::fill(foo.begin(), foo.end(), Foo("name"));
 
-  // The pair is just being constructed like an aggregate, use braces.
+  // The pair is being constructed like an aggregate, use braces.
   bar_map.insert({my_key, my_value});
 
 If you use a braced initializer list when initializing a variable, use an equals before the open curly brace:
@@ -1366,10 +1052,10 @@ public:
   // ...
 };
 
-// The Foo constructor call is very deliberate, no braces.
+// The Foo constructor call is reading a file, don't use braces to call it.
 std::fill(foo.begin(), foo.end(), Foo("name"));
 
-// The pair is just being constructed like an aggregate, use braces.
+// The pair is being constructed like an aggregate, use braces.
 bar_map.insert({my_key, my_value});
 ```
 
@@ -1390,11 +1076,16 @@ readable or easier to maintain. Don't "almost always" use ``auto``, but do use
 type is already obvious from the context. Another time when ``auto`` works well
 for these purposes is when the type would have been abstracted away anyways,
 often behind a container's typedef such as ``std::vector<T>::iterator``.
+
+Similarly, C++14 adds generic lambda expressions where parameter types can be
+``auto``. Use these where you would have used a template.
 -->
 
 #### コードを読みやすくするために`auto`型推論を使う
 
-C++11では「たいてい`auto`」という主張もありますが、LLVMはより緩やかなスタンスを使用しています。コードが読みやすくなったり、保守しやすくなる場合のみ`auto`を使ってください。`auto`を使うのに「たいてい」とはしませんが、`cast<Foo>(...)`等の初期化や、ほかの場所でも文脈から明らかな場合は`auto`を使ってください。また、抽象化されすぎている型に対しても`auto`は有用です。`std::vector<T>::iterator`のようなコンテナクラス内の型定義は抽象化されすぎている型の典型例でしょう。
+C++11では「たいてい`auto`」という主張もありますが、LLVMはより緩やかなスタンスを使用しています。コードの可読性や保守性が上がる場合のみ`auto`を使ってください。`auto`を使うのに「たいてい」とはしませんが、`cast<Foo>(...)`等の初期化や、ほかの場所でも文脈から明らかな場合は`auto`を使ってください。また、抽象化されすぎている型に対しても`auto`は有用です。`std::vector<T>::iterator`のようなコンテナクラス内の型定義は抽象化されすぎている型の典型例でしょう。
+
+同様に、C++14はパラメータの型が`auto`になるジェネリックラムダ式を追加します。テンプレートを使っていたところでこれらを使います。
 
 <!--
 Beware unnecessary copies with ``auto``
@@ -1404,8 +1095,8 @@ The convenience of ``auto`` makes it easy to forget that its default behavior
 is a copy.  Particularly in range-based ``for`` loops, careless copies are
 expensive.
 
-As a rule of thumb, use ``auto &`` unless you need to copy the result, and use
-``auto *`` when copying pointers.
+Use ``auto &`` for values and ``auto *`` for pointers unless you need to make a
+copy.
 .. code-block:: c++
 
   // Typically there's no reason to copy.
@@ -1424,7 +1115,7 @@ As a rule of thumb, use ``auto &`` unless you need to copy the result, and use
 
 `auto`の利便性は、そのデフォルト動作がコピーであることをよく忘れさせます。特に範囲ベース`for`ループでは、不注意なコピーが高くつきます。
 
-経験則として、結果のコピーが不要であれば`auto &`を使い、ポインタをコピーする場合は`auto *`を使います。
+結果のコピーが不要であれば、値には`auto &`を、ポインタには`auto *`を使います。
 
 ```cpp
 // Typically there's no reason to copy.
@@ -1447,40 +1138,40 @@ In general, there is no relative ordering among pointers. As a result,
 when unordered containers like sets and maps are used with pointer keys
 the iteration order is undefined. Hence, iterating such containers may
 result in non-deterministic code generation. While the generated code
-might not necessarily be "wrong code", this non-determinism might result
-in unexpected runtime crashes or simply hard to reproduce bugs on the
-customer side making it harder to debug and fix.
+might work correctly, non-determinism can make it harder to reproduce bugs and
+debug the compiler.
 
-As a rule of thumb, in case an ordered result is expected, remember to
+In case an ordered result is expected, remember to
 sort an unordered container before iteration. Or use ordered containers
-like vector/MapVector/SetVector if you want to iterate pointer keys.
+like ``vector``/``MapVector``/``SetVector`` if you want to iterate pointer
+keys.
 -->
 
 #### ポインタ順序による非決定性に注意
 
-一般に、ポインタ間で順序はありません。その結果、setやmapのように順序のないコンテナで、キーにポインタが使われる場合、反復（iteration）順序は未定義です。したがって、そのようなコンテナの反復は結果として非決定的[^nondeterministic]なコードが生成されます。必ずしも「間違ったコード」とは限りませんが、予期しないクラッシュを招いたり、再現しないバグを生じるなどして、デバッグを難しくします。
+一般に、ポインタ間で順序はありません。その結果、setやmapのように順序のないコンテナで、キーにポインタが使われる場合、反復（iteration）順序は未定義です。したがって、そのようなコンテナの反復は結果として非決定的[^nondeterministic]なコードが生成されます。生成されたコードは正しく動く可能性がありますが、非決定性により再現しないバグを生じデバッグが難しくなる恐れもあります。
 
 [^nondeterministic]: 訳注：実行毎に順序が変わりうる。
 
-経験則として、順序ある結果を期待する場合は、順序なしコンテナの反復前にソートしてください。それか、ポインタキーを反復したいならvector/MapVector/SetVectorのような順序付きコンテナを使います。
+順序ある結果を期待する場合は、順序なしコンテナの反復前にソートしてください。それか、ポインタキーを反復したいなら``vector``/``MapVector``/``SetVector``のような順序付きコンテナを使います。
 
 <!--
 Beware of non-deterministic sorting order of equal elements
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-std::sort uses a non-stable sorting algorithm in which the order of equal
-elements is not guaranteed to be preserved. Thus using std::sort for a
+``std::sort`` uses a non-stable sorting algorithm in which the order of equal
+elements is not guaranteed to be preserved. Thus using ``std::sort`` for a
 container having equal elements may result in non-determinstic behavior.
 To uncover such instances of non-determinism, LLVM has introduced a new
 llvm::sort wrapper function. For an EXPENSIVE_CHECKS build this will randomly
-shuffle the container before sorting. As a rule of thumb, always make sure to
-use llvm::sort instead of std::sort.
+shuffle the container before sorting. Default to using ``llvm::sort`` instead
+of ``std::sort``.
 -->
 
 #### 等しい要素のソートによる非決定性に注意
 
-std::sortは安定ソートではありません。そのため、等しい要素を持つコンテナにstd::sortを使うと、非決定的な動作となる恐れがあります。
-この非決定的な挙動を見つけるため、LLVMは新しいllvm::sortラッパ関数を導入しました。EXPENSIVE_CHECKSビルドの場合、ソート前にコンテナをランダムにシャッフルします。経験則として、常にstd::sortではなくllvm::sortを使ってください。
+`std::sort`は安定ソートではありません。そのため、等しい要素を持つコンテナに`std::sort`を使うと、非決定的な動作となる恐れがあります。
+この非決定的な挙動を見つけるため、LLVMは新しいllvm::sortラッパ関数を導入しました。EXPENSIVE_CHECKSビルドの場合、ソート前にコンテナをランダムにシャッフルします。`std::sort`ではなく`llvm::sort`をデフォルトで使います。
 
 <!--
 Style Issues
@@ -1498,9 +1189,9 @@ The High-Level Issues
 Self-contained Headers
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Header files should be self-contained (compile on their own) and end in .h.
-Non-header files that are meant for inclusion should end in .inc and be used
-sparingly.
+Header files should be self-contained (compile on their own) and end in ``.h``.
+Non-header files that are meant for inclusion should end in ``.inc`` and be
+used sparingly.
 
 All header files should be self-contained. Users and refactoring tools should
 not have to adhere to special conditions to include the header. Specifically, a
@@ -1521,8 +1212,8 @@ should be included after user headers for a translation unit.
 
 #### 自己完結型ヘッダ
 
-ヘッダファイルは自己完結型（それのみでコンパイル）とし、「.h」で終えます。
-読み込みを意図した非ヘッダファイルは「.inc」で終え、注意して使ってください。
+ヘッダファイルは自己完結型（それのみでコンパイル）とし、`.h`で終えます。
+読み込みを意図した非ヘッダファイルは`.inc`で終え、注意して使ってください。
 
 すべてのヘッダは自己完結型にします。ユーザーとリファクタリングツールはincludeのために特別な条件に従う必要はありません。具体的には、ヘッダはインクルードガードを持ち、必要なすべてのヘッダをincludeします。
 
@@ -1564,7 +1255,9 @@ depended on C, or the opposite in the second case)
 
 この制約が適用できるのは旧来のUnixリンカです（Mac & Windowsのリンカはlldと同様にこの制約を適用しません）。Unixリンカはコマンドラインで指定されたライブラリを左から右に検索します。ライブラリの循環依存は存在できません。
 
-これはすべてのライブラリ間の依存を完全に強制するわけではありません。また重要なこととして、インライン関数によるヘッダファイルの循環依存は強制しません。「これが正しく階層化されているか」に答える良い方法は、すべてのインライン関数がout-of-lineで定義された場合でもUnixリンカが成功するか考えてみることです。（さらに依存関係の有効な順序すべてについて。リンク解決は線形のため、いくつかの暗黙の依存関係についてすり抜ける恐れがあります。AはBとCに依存するので、有効な順序は「C B A」や「B C A」です。どちらも利用の前に明示的な依存が来ます。ただし前者では暗黙的にBがCに依存している場合リンクが成功し、後者はその逆です）
+これはすべてのライブラリ間の依存を完全に強制するわけではありません。また重要なこととして、インライン関数によるヘッダファイルの循環依存は強制しません。
+「これが正しく階層化されているか」に答える良い方法は、すべてのインライン関数がout-of-lineで定義された場合でもUnixリンカが成功するか考えてみることです。
+（さらに依存関係の有効な順序すべてについて。リンク解決は線形のため、いくつかの暗黙の依存関係についてすり抜ける恐れがあります。AはBとCに依存するので、有効な順序は「C B A」や「B C A」です。どちらも利用の前に明示的な依存が来ます。ただし前者では暗黙的にBがCに依存している場合リンクが成功し、後者はその逆です）
 
 <!--
 .. _minimal list of #includes:
@@ -1621,8 +1314,6 @@ your private interface remains private and undisturbed by outsiders.
 
     It's okay to put extra implementation methods in a public class itself. Just
     make them private (or protected) and all is well.
-
-.. _early exits:
 -->
 
 #### 「内部」ヘッダは非公開
@@ -1631,11 +1322,12 @@ your private interface remains private and undisturbed by outsiders.
 
 本当に必要な場合は、ソースファイルと同じディレクトリに非公開ヘッダファイルを置いて、それを内々でインクルードしてください。これは、非公開インタフェースが他者に乱されず非公開であることを保証します。
 
-> **注**
->
-> 追加の実装メソッドをpublicクラス自体に入れても構いません。private（またはprotected）とすることで、うまくいきます。
+:::note
+publicクラス自体に追加の実装メソッドを入れてもかまいません。private（またはprotected）とすることで、うまくいきます。
+:::
 
 <!--
+.. _early exits:
 Use Early Exits and ``continue`` to Simplify Code
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -1643,8 +1335,8 @@ When reading code, keep in mind how much state and how many previous decisions
 have to be remembered by the reader to understand a block of code.  Aim to
 reduce indentation where possible when it doesn't make it more difficult to
 understand the code.  One great way to do this is by making use of early exits
-and the ``continue`` keyword in long loops.  As an example of using an early
-exit from a function, consider this "bad" code:
+and the ``continue`` keyword in long loops. Consider this code that does not
+use an early exit:
 
 .. code-block:: c++
 
@@ -1660,7 +1352,7 @@ exit from a function, consider this "bad" code:
 
 #### 早期終了と`continue`でコードをシンプルに
 
-なるべくインデントを減らすことは、コードを理解しやすくします。1つの方法は、早期終了する（Early Exits）ことと、長いループで`continue`キーワードを使うことです。関数からの早期終了を使う例として、この「悪い」コードを考えてみます。
+なるべくインデントを減らすことは、コードを理解しやすくします。1つの方法は、早期終了する（Early Exits）ことと、長いループで`continue`キーワードを使うことです。早期終了を使わない次のコードを考えてみます。
 
 ```cpp:悪い例
 Value *doSomething(Instruction *I) {
@@ -1813,10 +1505,9 @@ big understandability win.
 Don't use ``else`` after a ``return``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For similar reasons above (reduction of indentation and easier reading), please
+For similar reasons as above (reduction of indentation and easier reading), please
 do not use ``'else'`` or ``'else if'`` after something that interrupts control
-flow --- like ``return``, ``break``, ``continue``, ``goto``, etc. For
-example, this is *bad*:
+flow --- like ``return``, ``break``, ``continue``, ``goto``, etc. For example:
 
 .. code-block:: c++
 
@@ -1827,7 +1518,7 @@ example, this is *bad*:
         Error = ASTContext::GE_Missing_sigjmp_buf;
         return QualType();
       } else {
-        break;
+        break; // Unnecessary.
       }
     } else {
       Type = Context.getjmp_bufType();
@@ -1835,7 +1526,7 @@ example, this is *bad*:
         Error = ASTContext::GE_Missing_jmp_buf;
         return QualType();
       } else {
-        break;
+        break; // Unnecessary.
       }
     }
   }
@@ -1843,9 +1534,9 @@ example, this is *bad*:
 
 #### `return`後に`else`を使用しない
 
-上記と同様の理由（インデントの減少と読みやすさ）から、制御フローの中断後に`else`や`else if`を使わないでください。制御フローの中断とは`return`、`break`、`continue`、`goto`等です。*悪い*例を示します。
+上記と同様の理由（インデントの減少と読みやすさ）から、制御フローの中断後に`else`や`else if`を使わないでください。制御フローの中断とは`return`、`break`、`continue`、`goto`等です。
 
-```cpp:悪い例
+```cpp:例
 case 'J': {
   if (Signed) {
     Type = Context.getsigjmp_bufType();
@@ -1853,7 +1544,7 @@ case 'J': {
       Error = ASTContext::GE_Missing_sigjmp_buf;
       return QualType();
     } else {
-      break;
+      break; // Unnecessary.
     }
   } else {
     Type = Context.getjmp_bufType();
@@ -1861,7 +1552,7 @@ case 'J': {
       Error = ASTContext::GE_Missing_jmp_buf;
       return QualType();
     } else {
-      break;
+      break; // Unnecessary.
     }
   }
 }
@@ -1990,10 +1681,8 @@ if (FoundFoo) {
 ```
 
 <!--
-This sort of code is awkward to write, and is almost always a bad sign.  Instead
-of this sort of loop, we strongly prefer to use a predicate function (which may
-be `static`_) that uses `early exits`_ to compute the predicate.  We prefer the
-code to be structured like this:
+Instead of this sort of loop, we prefer to use a predicate function (which may
+be `static`_) that uses `early exits`_:
 
 .. code-block:: c++
 
@@ -2011,7 +1700,7 @@ code to be structured like this:
   }
 -->
 
-この種のコードを書くのはやっかいであり、たいていは悪い兆候です。関数化（staticにできます）し早期終了を使いましょう。次のようなコード構成が好ましいです。
+この種のループの代わりに、[早期終了](#早期終了とcontinueでコードをシンプルに)するpredicate関数（[static](#無名名前空間)の場合もあります）を使いましょう。
 
 ```cpp:好ましい例
 /// \returns true if the specified list has an element that is a foo.
@@ -2123,41 +1812,41 @@ style of lower-case words separated by underscores (e.g. ``begin()``,
 iterators should add a singular prefix to ``begin()`` and ``end()``
 (e.g. ``global_begin()`` and ``use_begin()``).
 
-Here are some examples of good and bad names:
+Here are some examples:
 
 .. code-block:: c++
 
   class VehicleMaker {
     ...
-    Factory<Tire> F;            // Bad -- abbreviation and non-descriptive.
-    Factory<Tire> Factory;      // Better.
-    Factory<Tire> TireFactory;  // Even better -- if VehicleMaker has more than one
+    Factory<Tire> F;            // Avoid: a non-descriptive abbreviation.
+    Factory<Tire> Factory;      // Better: more descriptive.
+    Factory<Tire> TireFactory;  // Even better: if VehicleMaker has more than one
                                 // kind of factories.
   };
 
   Vehicle makeVehicle(VehicleType Type) {
-    VehicleMaker M;                         // Might be OK if having a short life-span.
-    Tire Tmp1 = M.makeTire();               // Bad -- 'Tmp1' provides no information.
-    Light Headlight = M.makeLight("head");  // Good -- descriptive.
+    VehicleMaker M;                         // Might be OK if scope is small.
+    Tire Tmp1 = M.makeTire();               // Avoid: 'Tmp1' provides no information.
+    Light Headlight = M.makeLight("head");  // Good: descriptive.
     ...
   }
 -->
 
 例外として、STLクラスを模倣するクラスがあります。このクラスは、アンダースコアで区切られた小文字の単語というSTLのスタイルでメンバー名を持てます（例：`begin()`、`push_back()`と`empty()`）。複数のイテレータを提供するクラスは`begin()`と`end()`に特異な接頭辞を追加する必要があります（例：`global_begin()`と `use_begin()`）。
 
-```cpp:良い名前と悪い名前の例
+```cpp:例
 class VehicleMaker {
   ...
-  Factory<Tire> F;            // Bad -- abbreviation and non-descriptive.
-  Factory<Tire> Factory;      // Better.
-  Factory<Tire> TireFactory;  // Even better -- if VehicleMaker has more than one
+  Factory<Tire> F;            // Avoid: a non-descriptive abbreviation.
+  Factory<Tire> Factory;      // Better: more descriptive.
+  Factory<Tire> TireFactory;  // Even better: if VehicleMaker has more than one
                               // kind of factories.
 };
 
 Vehicle makeVehicle(VehicleType Type) {
-  VehicleMaker M;                         // Might be OK if having a short life-span.
-  Tire Tmp1 = M.makeTire();               // Bad -- 'Tmp1' provides no information.
-  Light Headlight = M.makeLight("head");  // Good -- descriptive.
+  VehicleMaker M;                         // Might be OK if scope is small.
+  Tire Tmp1 = M.makeTire();               // Avoid: 'Tmp1' provides no information.
+  Light Headlight = M.makeLight("head");  // Good: descriptive.
   ...
 }
 ```
@@ -2273,7 +1962,7 @@ used instead. In cases where this is not practical, ``report_fatal_error`` may
 be used.
 -->
 
-アサーションも``llvm_unreachable``も、リリースビルドではプログラムをabortしません。もしユーザーの入力によりエラー状態となりうる場合、[LLVM Programmer’s Manual](https://releases.llvm.org/9.0.0/docs/ProgrammersManual.html)にある回復可能なエラーメカニズムを使う必要があります。それが実用的でないような場合は、``report_fatal_error``を使います。
+アサーションも``llvm_unreachable``も、リリースビルドではプログラムをabortしません。もしユーザーの入力によりエラー状態となりうる場合、[LLVM Programmer’s Manual](https://releases.llvm.org/10.0.0/docs/ProgrammersManual.html)にある回復可能なエラーメカニズムを使う必要があります。それが実用的でないような場合は、``report_fatal_error``を使います。
 
 <!--
 Another issue is that values used only by assertions will produce an "unused
@@ -2331,8 +2020,8 @@ namespace with an "``std::``" prefix, rather than rely on "``using namespace
 std;``".
 
 In header files, adding a ``'using namespace XXX'`` directive pollutes the
-namespace of any source file that ``#include``\s the header.  This is clearly a
-bad thing.
+namespace of any source file that ``#include``\s the header, creating
+maintenance issues.
 
 In implementation files (e.g. ``.cpp`` files), the rule is more of a stylistic
 rule, but is still important.  Basically, using explicit namespace prefixes
@@ -2349,7 +2038,7 @@ never use ``'using namespace std;'`` in LLVM.
 
 LLVMでは、標準名前空間のすべての識別子について、「`using namespace std;`」に頼るのではなく、「`std::`」接頭辞を明示することを好みます。
 
-ヘッダファイルで、`'using namespace XXX'`ディレクティブを追加することはヘッダを`#include`するソースファイルの名前空間を汚染します。これは明らかに悪いことです。
+ヘッダファイルにおいて、`'using namespace XXX'`ディレクティブの追加はそのヘッダを`#include`するソースファイルの名前空間を汚し、メンテナンスの問題が生じます。
 
 実装ファイル（たとえば`.cpp`ファイル）では、よりスタイルの問題ですが、それでも重要です。基本的に、明示的な名前空間の接頭辞は、コードを**明解**にします。また、LLVMコードやほかの名前空間との間で名前空間の衝突が起きないため、**よりポータブル**になります。将来のC++標準の改訂では`std`名前空間へのシンボル追加もあるでしょう。ですので、私たちはLLVMで`'using namespace std;'`をけっして使いません。
 
@@ -2551,9 +2240,9 @@ provides various APIs that are better performing for almost every use than
 
 それ以外のストリームヘッダ（たとえば`<sstream>`）の使用はこの点で問題ないことに注意してください。`<iostream>`のみです。しかし、`raw_ostream`の提供するさまざまなAPIは、ほとんどすべての用途で`std::ostream`スタイルのAPIよりも優れたパフォーマンスを発揮します。
 
-> **注**
->
-> 新規コードでは常に、ファイル読み込みに`llvm::MemoryBuffer`APIを、書き込みにraw_ostreamを使ってください。
+:::note
+新規コードでは常に、ファイル読み込みに`llvm::MemoryBuffer`APIを、書き込みにraw_ostreamを使ってください。
+:::
 
 <!--
 Use ``raw_ostream``
@@ -2673,9 +2362,8 @@ reasoning on why we prefer them.
 Spaces Before Parentheses
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-We prefer to put a space before an open parenthesis only in control flow
-statements, but not in normal function call expressions and function-like
-macros.  For example, this is good:
+Put a space before an open parenthesis only in control flow statements, but not
+in normal function call expressions and function-like macros.  For example:
 
 .. code-block:: c++
 
@@ -2688,25 +2376,15 @@ macros.  For example, this is good:
 
   A = foo(42, 92) + bar(X);
 
-and this is bad:
-
-.. code-block:: c++
-
-  if(X) ...
-  for(I = 0; I != 100; ++I) ...
-  while(LLVMRocks) ...
-
-  somefunc (42);
-  assert (3 != 4 && "laws of math are failing me");
-
-  A = foo (42, 92) + bar (X);
+The reason for doing this is not completely arbitrary.  This style makes control
+flow operators stand out more, and makes expressions flow better.
 -->
 
 #### 括弧の前にスペース
 
 フロー制御文の開き括弧の前でのみスペースを入れます。普通の関数呼び出しや関数風マクロでは入れません。
 
-```cpp:良い例
+```cpp:例
 if (X) ...
 for (I = 0; I != 100; ++I) ...
 while (LLVMRocks) ...
@@ -2717,41 +2395,7 @@ assert(3 != 4 && "laws of math are failing me");
 A = foo(42, 92) + bar(X);
 ```
 
-```cpp:悪い例
-if(X) ...
-for(I = 0; I != 100; ++I) ...
-while(LLVMRocks) ...
-
-somefunc (42);
-assert (3 != 4 && "laws of math are failing me");
-
-A = foo (42, 92) + bar (X);
-```
-
-<!--
-The reason for doing this is not completely arbitrary.  This style makes control
-flow operators stand out more, and makes expressions flow better. The function
-call operator binds very tightly as a postfix operator.  Putting a space after a
-function name (as in the last example) makes it appear that the code might bind
-the arguments of the left-hand-side of a binary operator with the argument list
-of a function and the name of the right side.  More specifically, it is easy to
-misread the "``A``" example as:
-
-.. code-block:: c++
-
-  A = foo ((42, 92) + bar) (X);
-
-when skimming through the code.  By avoiding a space in a function, we avoid
-this misinterpretation.
--->
-
-このスタイルは、制御フロー演算子を目立たせ、式の流れを良くします。関数呼び出し演算子は、後置演算子として非常に強く結合します。関数名の後にスペースを置くこと（最後の例のように）は、関数の引数リストといっしょの二項演算子について、引数を左側に持ち名前を右側に持つ二項演算のように見えます。具体的には、次のように「`A`」を簡単に読み違えてしまいます。
-
-```cpp:例
-A = foo ((42, 92) + bar) (X);
-```
-
-関数でのスペースを避けることで、この誤解を避けられます。
+このスタイルは、制御フロー演算子を目立たせ、式の流れを良くします。
 
 <!--
 Prefer Preincrement
@@ -2779,14 +2423,14 @@ get in the habit of always using preincrement, and you won't have a problem.
 1. 「作業値」を前置インクリメントする
 1. インクリメント前の値を返す
 
-プリミティブ型の場合、これはたいした問題ではありません。しかしイテレータでは、大きな問題となる可能性があります。たとえば、いくつかのイテレータはスタックを含み、それらにオブジェクトを設定します。イテレータをコピーすると、それらのコピーコンストラクタを呼ぶことにもなります。一般に、いつも前置インクリメントを使う習慣を身につれば、問題は起きません。
+プリミティブ型の場合、これは大きな問題ではありません。しかしイテレータでは、大きな問題となる可能性があります。たとえば、いくつかのイテレータはスタックを含み、それらにオブジェクトを設定します。イテレータをコピーすると、それらのコピーコンストラクタを呼ぶことにもなります。一般に、いつも前置インクリメントを使う習慣を身につれば、問題は起きません。
 
 <!--
 Namespace Indentation
 ^^^^^^^^^^^^^^^^^^^^^
 
 In general, we strive to reduce indentation wherever possible.  This is useful
-because we want code to `fit into 80 columns`_ without wrapping horribly, but
+because we want code to `fit into 80 columns`_ without excessive wrapping, but
 also because it makes it easier to understand the code. To facilitate this and
 avoid some insanely deep nesting on occasion, don't indent namespaces. If it
 helps readability, feel free to add a comment indicating what namespace is
@@ -2815,7 +2459,7 @@ being closed by a ``}``.  For example:
 
 #### 名前空間のインデント
 
-大概、私たちは可能な限りインデントを減らすよう努力しています。これはコードをひどい折り返しなしに収めるためにも便利ですが、コードを簡単に分かりやすくすることにも便利です。これを促進するとともに、非常に深いネストの機会を避けるために、名前空間はインデントしません。読みやすくなる場合、`}`でどの名前空間が閉じられるかをコメントしてもよいでしょう。
+通常、私たちは可能な限りインデントを減らすよう努めています。これはコードを過度な折り返しなしで[80桁に収める](#ソースコードの幅)ためのみならず、コードを理解しやすくすることにも便利です。これを促すため、そして場合によって非常に深くなるネストを避けるため、名前空間はインデントしません。読みやすくなる場合、`}`でどの名前空間が閉じられるかをコメントしてもよいでしょう。
 
 ```cpp:例
 namespace llvm {
@@ -2877,8 +2521,7 @@ chunk of the file.
 
 <!--
 Because of this, we have a simple guideline: make anonymous namespaces as small
-as possible, and only use them for class declarations.  For example, this is
-good:
+as possible, and only use them for class declarations.  For example:
 
 .. code-block:: c++
 
@@ -2902,7 +2545,7 @@ good:
 
 このため、シンプルなガイドラインがあります。無名名前空間はできるだけ小さくし、クラス定義にのみ使います。
 
-```cpp:OK
+```cpp:例
 namespace {
 class StringSort {
 ...
@@ -2922,60 +2565,47 @@ bool StringSort::operator<(const char *RHS) const {
 ```
 
 <!--
-This is bad:
+Avoid putting declarations other than classes into anonymous namespaces:
 
 .. code-block:: c++
 
   namespace {
 
-  class StringSort {
-  ...
-  public:
-    StringSort(...)
-    bool operator<(const char *RHS) const;
-  };
+  // ... many declarations ...
 
   void runHelper() {
     ...
   }
 
-  bool StringSort::operator<(const char *RHS) const {
-    ...
-  }
+  // ... many declarations ...
 
   } // end anonymous namespace
 -->
 
-```cpp:NG
+クラス以外の宣言は匿名名前空間に入れません。
+
+```cpp
 namespace {
 
-class StringSort {
-...
-public:
-  StringSort(...)
-  bool operator<(const char *RHS) const;
-};
+// ... many declarations ...
 
 void runHelper() {
   ...
 }
 
-bool StringSort::operator<(const char *RHS) const {
-  ...
-}
+// ... many declarations ...
 
 } // end anonymous namespace
 ```
 
 <!--
-This is bad specifically because if you're looking at "``runHelper``" in the middle
-of a large C++ file, that you have no immediate way to tell if it is local to
-the file.  When it is marked static explicitly, this is immediately obvious.
-Also, there is no reason to enclose the definition of "``operator<``" in the
-namespace just because it was declared there.
+When you are looking at "``runHelper``" in the middle of a large C++ file,
+you have no immediate way to tell if this function is local to the file.  In
+contrast, when the function is marked static, you don't need to cross-reference
+faraway places in the file to tell that the function is local.
 -->
 
-これは最悪です。なぜなら大きなC++ファイルの途中の「`runHelper`」を見た場合、すぐにファイルローカルかどうかを知るすべがないからです。明示的にstaticにされていれば、これはすぐ分かります。また、それが宣言されたというだけでは、名前空間に「`operator<`」の定義を含める理由になりません。
+大きなC++ファイルの途中の「`runHelper`」を見た場合、ファイルローカルかどうかはすぐに判断できません。しかしstaticと明示されていれば、ローカルなのか知るためにファイル内の遠くを見なくて済みます。
 
 <!--
 
@@ -3005,9 +2635,23 @@ something.
 1. [Effective C++](http://www.amazon.com/Effective-Specific-Addison-Wesley-Professional-Computing/dp/0321334876) by Scott Meyers。同じ著者による「More Effective C++」「Effective STL」もまた、興味深く有用です。
 1. [Large-Scale C++ Software Design](http://www.amazon.com/Large-Scale-Software-Design-John-Lakos/dp/0201633620/ref=sr_1_1) by John Lakos
 
+----
+
 ## 原文の変更内容
 
-リンク先の更新や誤記修正など内容に関わらない変更は記載省略してます。
+リンク先の更新や文言修正など内容に関わらない変更は記載省略してます。
+
+<details><summary>9.0.0 -> 10.0.0</summary>
+
+ベースがC++11 -> C++14に変わりました。文章が大きく整理されました。
+
+- 再構成：前書き＞言語、ライブラリ、および標準
+　C++11 -> C++14に。
+- 削除：機械的なソースの問題＞ソースコードのフォーマット＞インデントの一環
+- 内容追加：機械的なソースの問題＞言語とコンパイラの問題＞コードを読みやすくするために`auto`型推論を使う
+　ジェネリックラムダについて。
+
+</details>
 
 <details><summary>8.0.0 -> 9.0.0</summary>
 
@@ -3048,6 +2692,6 @@ something.
 
 ## この文書（翻訳）のライセンスについて
 
-© Copyright 2003-2019, LLVM Project.
-原文は[こちらのライセンス](https://releases.llvm.org/9.0.0/LICENSE.TXT)下にあるLLVMのドキュメントに含まれますので、そちらのライセンスに従います。
-翻訳者（@tenmyo）は著作権を主張しません。皆さんのコーディング品質向上に、少しでも役立てればなによりです。
+© Copyright 2003-2020, LLVM Project.
+原文は[こちらのライセンス](https://releases.llvm.org/10.0.0/LICENSE.TXT)下にあるLLVMのドキュメントに含まれているため、そちらのライセンスに従います。
+翻訳者（@tenmyo）は著作権を主張しません。
