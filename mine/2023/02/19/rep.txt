@@ -1,0 +1,9 @@
+\\"(ScreenShot|InstanceId|ScreenshotPath)\\": \\"[^"]+\\"
+\\"$1\\": null
+
+\\"Elements\\": \[\\r\\n.+?(?=\],\\r\\n              \\"Ignore\\")
+\\"Elements\\": [
+
+# ControlRepositorySymbols -> Repository だけ
+\\r\\n
+\\r\\n\n
