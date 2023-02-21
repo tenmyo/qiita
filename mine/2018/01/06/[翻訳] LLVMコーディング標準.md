@@ -2,7 +2,7 @@
 id: 7e4847b88e63d5769dd8
 url: https://qiita.com/tenmyo/items/7e4847b88e63d5769dd8
 created_at: 2018-01-06T15:19:28+09:00
-updated_at: 2023-02-04T22:22:15+09:00
+updated_at: 2023-02-21T10:31:45+09:00
 private: false
 coediting: false
 tags:
@@ -14,7 +14,7 @@ tags:
 team: null
 -->
 
-# [翻訳] LLVMコーディング標準(10.0.0)
+# [翻訳] LLVMコーディング標準(11.0.0)
 
 # LLVMコーディング標準
 
@@ -25,7 +25,7 @@ LLVMの一部としてリリースされているCファミリーのコンパイ
 本記事は、LLVMプロジェクトで用いられているコーディング標準（LLVM Coding Standards）のざっくり日本語訳です。
 「組織内でのコーディング規約作成の参考にしたい」「`clang-format`等のフォーマッタでLLVMスタイルが指定できるが、その内容を知りたい」といった読者を想定しています。
 
-LLVMのメジャーリリースに合わせてこの記事も更新していく予定です。現在は[10.0.0版](https://releases.llvm.org/10.0.0/docs/CodingStandards.html)に基づいています。原文の変更内容は[記事末尾](#原文の変更内容)に軽くまとめています。
+LLVMのメジャーリリースに合わせてこの記事も更新していく予定です。現在は[11.0.0版](https://releases.llvm.org/11.0.0/docs/CodingStandards.html)に基づいています。原文の変更内容は[記事末尾](#原文の変更内容)に軽くまとめています。
 
 解釈誤りや分かりづらさの指摘は、コメントや編集リクエストでいただけたら幸いです。
 
@@ -133,8 +133,8 @@ Each toolchain provides a good reference for what it accepts:
 特に記載がない限り、LLVMサブプロジェクトはC++14標準を用いて、また不要なベンダー拡張は避けて書かれています。
 
 とはいえ、ホストコンパイラとしてサポートする主要なツールチェイン[^toolchain]で使える機能に限定しています。
-（[Getting Started with the LLVM System](https://releases.llvm.org/10.0.0/docs/GettingStarted.html)の`Software`セクションも参照のこと）
-[^toolchain]: 訳注：LLVM10.0.0ではClang 3.5、Apple Clang 6.0、GCC 5.1、Visual Studio 2017。
+（[Getting Started with the LLVM System](https://releases.llvm.org/11.0.0/docs/GettingStarted.html)の`Software`セクションも参照のこと）
+[^toolchain]: 訳注：LLVM11.0.0ではClang 3.5、Apple Clang 6.0、GCC 5.1、Visual Studio 2017。
 
 どのツールチェインも、サポートする言語機能の良い資料を提供しています。
 
@@ -151,27 +151,49 @@ C++ Standard Library
 
 ### C++標準ライブラリ
 
-<!-- 
-Use the C++ standard library facilities whenever they are available for
-a particular task. LLVM and related projects emphasize and rely on the standard
-library facilities as much as possible.
-
-We avoid some standard facilities, like the I/O streams, and instead use LLVM's
-streams library (raw_ostream_). More detailed information on these subjects is
-available in the :doc:`ProgrammersManual`.
-
-LLVM support libraries (for example, `ADT
-<https://github.com/llvm/llvm-project/tree/master/llvm/include/llvm/ADT>`_)
-implement functionality missing in the standard library. Such libraries are
-usually implemented in the ``llvm`` namespace and follow the expected standard
-interface, when there is one.
+<!--
+Instead of implementing custom data structures, we encourage the use of C++
+standard library facilities or LLVM support libraries whenever they are
+available for a particular task. LLVM and related projects emphasize and rely
+on the standard library facilities and the LLVM support libraries as much as
+possible.
 -->
 
-C++標準ライブラリを活用してください。LLVMと関連プロジェクトでは、標準ライブラリをできるだけ重視し頼ります。
+カスタムデータ構造を作る代わりに、C++標準ライブラリやLLVMサポートライブラリできる限り活用してください。LLVMと関連プロジェクトでは、標準ライブラリとLLVMサポートライブラリをできるだけ重視し頼ります。
 
-I/Oストリームのようないくつかの標準機構は避け、代わりにLLVMのストリームライブラリ（[raw_ostream](#raw_ostreamを使う)）を使います。これに関する詳細は[LLVM Programmer’s Manual](https://releases.llvm.org/10.0.0/docs/ProgrammersManual.html)にあります。
+<!--
+LLVM support libraries (for example, `ADT
+<https://github.com/llvm/llvm-project/tree/master/llvm/include/llvm/ADT>`_)
+implement specialized data structures or functionality missing in the standard
+library. Such libraries are usually implemented in the ``llvm`` namespace and
+follow the expected standard interface, when there is one.
+-->
 
-LLVMサポートライブラリ（たとえば[ADT](https://github.com/llvm/llvm-project/tree/main/llvm/include/llvm/ADT)）は、標準ライブラリに欠けた機能を実装します。それらライブラリでは通常``llvm``名前空間で実装され、期待される標準インタフェース（あれば）に従います。
+LLVMサポートライブラリ（たとえば[ADT](https://github.com/llvm/llvm-project/tree/main/llvm/include/llvm/ADT)）は、標準ライブラリに見当たらない特殊なデータ構造や機能を実装します。それらライブラリでは通常``llvm``名前空間で実装され、期待される標準インタフェース（あれば）に従います。
+
+<!--
+When both C++ and the LLVM support libraries provide similar functionality, and
+there isn't a specific reason to favor the C++ implementation, it is generally
+preferable to use the LLVM library. For example, ``llvm::DenseMap`` should
+almost always be used instead of ``std::map`` or ``std::unordered_map``, and
+``llvm::SmallVector`` should usually be used instead of ``std::vector``.
+-->
+
+C++とLLVMサポートライブラリ両方が似た機能を提供しており、C++実装を優先する特段の理由がない場合は、一般にLLVMライブラリをお勧めします。たとえば、たいていは`std::map`や`std::unordered_map`よりも`llvm::DenseMap`を、また`std::vector`ではなく`llvm::SmallVector`を使うべきです。
+
+<!--
+We explicitly avoid some standard facilities, like the I/O streams, and instead
+use LLVM's streams library (raw_ostream_). More detailed information on these
+subjects is available in the :doc:`ProgrammersManual`.
+
+For more information about LLVM's data structures and the tradeoffs they make,
+please consult [that section of the programmer's
+manual](https://llvm.org/docs/ProgrammersManual.html#picking-the-right-data-structure-for-a-task).
+-->
+
+I/Oストリームのようないくつかの標準機能はあえて避け、代わりにLLVMのストリームライブラリ（[raw_ostream](#raw_ostreamを使う)）を使います。これに関する詳細は[LLVM Programmer’s Manual](https://releases.llvm.org/11.0.0/docs/ProgrammersManual.html)にあります。
+
+LLVMのデータ構造とそのトレードオフについての詳細は、[Programmer’s Manualの該当章](https://releases.llvm.org/11.0.0/docs/ProgrammersManual.html#picking-the-right-data-structure-for-a-task)を参照ください。
 
 <!--
 Guidelines for Go code
@@ -559,6 +581,76 @@ void example() { ... }
 ```
 
 <!--
+Error and Warning Messages
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+-->
+
+#### エラーと警告メッセージ
+
+訳注：ユーザーに出力するメッセージの指針です。LLVM開発者がコーディング中、コンパイラ警告に直面した場合の振る舞いに関しては[別章](#コンパイラ警告はエラーと同様に扱う)に記載されています。
+
+<!--
+Clear diagnostic messages are important to help users identify and fix issues in
+their inputs. Use succinct but correct English prose that gives the user the
+context needed to understand what went wrong. Also, to match error message
+styles commonly produced by other tools, start the first sentence with a
+lower-case letter, and finish the last sentence without a period, if it would
+end in one otherwise. Sentences which end with different punctuation, such as
+"did you forget ';'?", should still do so.
+-->
+
+明確な診断メッセージは、ユーザーが入力の問題を特定して直すために重要です。簡潔で正しい英語の散文を用い、何を誤ったのかの理解に必要なコンテキストを示します。そして、ほかのツールでの一般的なエラーメッセージのスタイルに合わせるには、最初の文を小文字で始め、最後の文は（別のもので終わっている場合）ピリオドなしに終えます。ほかの句読点で終わる文、 "did you forget ';'?" などはそのままでよいでしょう。
+
+<!--
+For example this is a good error message:
+
+.. code-block:: none
+
+  error: file.o: section header 3 is corrupt. Size is 10 when it should be 20
+
+This is a bad message, since it does not provide useful information and uses the
+wrong style:
+
+.. code-block:: none
+
+  error: file.o: Corrupt section header.
+-->
+
+```text: 例：良いエラーメッセージ
+error: file.o: section header 3 is corrupt. Size is 10 when it should be 20
+```
+
+```text: 例：悪いエラーメッセージ（スタイル違反＆有益な情報がない）
+error: file.o: Corrupt section header.
+```
+
+<!--
+As with other coding standards, individual projects, such as the Clang Static
+Analyzer, may have preexisting styles that do not conform to this. If a
+different formatting scheme is used consistently throughout the project, use
+that style instead. Otherwise, this standard applies to all LLVM tools,
+including clang, clang-tidy, and so on.
+-->
+
+他のコーディング標準と同じく、個別のプロジェクト、たとえばClang Static Analyzerなどでは、これに準拠していない既存のスタイルが含まれていることがあります。プロジェクト全体で一貫した別のスタイルが使われていれば、それを使います。それ以外では、この標準はすべてのLLVMツールに適用されます。clangやclang-tidyなども含みます。
+
+<!--
+If the tool or project does not have existing functions to emit warnings or
+errors, use the error and warning handlers provided in ``Support/WithColor.h``
+to ensure they are printed in the appropriate style, rather than printing to
+stderr directly.
+
+When using ``report_fatal_error``, follow the same standards for the message as
+regular error messages. Assertion messages and ``llvm_unreachable`` calls do not
+necessarily need to follow these same styles as they are automatically
+formatted, and thus these guidelines may not be suitable.
+-->
+
+ツールやプロジェクトで警告やエラーを発行する既存の関数がない場合は、``Support/WithColor.h``で提供されるエラー/警告ハンドラを使って適切なスタイルで出力されるようにします。stderrには直接出力しません。
+
+``report_fatal_error``を使う場合、通常のエラーメッセージと同様の基準に従ってください。アサーションメッセージと``llvm_unreachable``呼び出しでは自動でフォーマットされるため必ずしも同じスタイルに従う必要はなく、これらのガイドラインは当てはまらない場合があります。
+
+<!--
 ``#include`` Style
 ^^^^^^^^^^^^^^^^^^
 
@@ -880,7 +972,7 @@ This form of RTTI is opt-in and can be
 
 コードと実行ファイルのサイズを減らすために、LLVMでは例外やRTTI（[実行時型情報](https://ja.wikipedia.org/wiki/%E5%AE%9F%E8%A1%8C%E6%99%82%E5%9E%8B%E6%83%85%E5%A0%B1)、たとえば`dynamic_cast<>`）は使いません。
 
-とはいえ、LLVMではRTTIを手で展開した [isa\<>、cast\<>、そしてdyn_cast\<>](https://releases.llvm.org/10.0.0/docs/ProgrammersManual.html#isa) のようなテンプレートを広く用います。RTTIのこの形式は、[任意のクラス](https://releases.llvm.org/10.0.0/docs/HowToSetUpLLVMStyleRTTI.html)にオプトインで追加できます。
+とはいえ、LLVMではRTTIを手で展開した [isa\<>、cast\<>、そしてdyn_cast\<>](https://releases.llvm.org/11.0.0/docs/ProgrammersManual.html#isa) のようなテンプレートを広く用います。RTTIのこの形式は、[任意のクラス](https://releases.llvm.org/11.0.0/docs/HowToSetUpLLVMStyleRTTI.html)にオプトインで追加できます。
 
 <!--
 .. _static constructor:
@@ -1100,15 +1192,15 @@ copy.
 .. code-block:: c++
 
   // Typically there's no reason to copy.
-  for (const auto &Val : Container) { observe(Val); }
-  for (auto &Val : Container) { Val.change(); }
+  for (const auto &Val : Container) observe(Val);
+  for (auto &Val : Container) Val.change();
 
   // Remove the reference if you really want a new copy.
   for (auto Val : Container) { Val.change(); saveSomewhere(Val); }
 
   // Copy pointers, but make it clear that they're pointers.
-  for (const auto *Ptr : Container) { observe(*Ptr); }
-  for (auto *Ptr : Container) { Ptr->change(); }
+  for (const auto *Ptr : Container) observe(*Ptr);
+  for (auto *Ptr : Container) Ptr->change();
 -->
 
 #### `auto`での不必要なコピーに注意
@@ -1119,15 +1211,15 @@ copy.
 
 ```cpp
 // Typically there's no reason to copy.
-for (const auto &Val : Container) { observe(Val); }
-for (auto &Val : Container) { Val.change(); }
+for (const auto &Val : Container) observe(Val);
+for (auto &Val : Container) Val.change();
 
 // Remove the reference if you really want a new copy.
 for (auto Val : Container) { Val.change(); saveSomewhere(Val); }
 
 // Copy pointers, but make it clear that they're pointers.
-for (const auto *Ptr : Container) { observe(*Ptr); }
-for (auto *Ptr : Container) { Ptr->change(); }
+for (const auto *Ptr : Container) observe(*Ptr);
+for (auto *Ptr : Container) Ptr->change();
 ```
 
 <!--
@@ -1161,7 +1253,7 @@ Beware of non-deterministic sorting order of equal elements
 
 ``std::sort`` uses a non-stable sorting algorithm in which the order of equal
 elements is not guaranteed to be preserved. Thus using ``std::sort`` for a
-container having equal elements may result in non-determinstic behavior.
+container having equal elements may result in non-deterministic behavior.
 To uncover such instances of non-determinism, LLVM has introduced a new
 llvm::sort wrapper function. For an EXPENSIVE_CHECKS build this will randomly
 shuffle the container before sorting. Default to using ``llvm::sort`` instead
@@ -1327,6 +1419,90 @@ publicクラス自体に追加の実装メソッドを入れてもかまいま�
 :::
 
 <!--
+Use Namespace Qualifiers to Implement Previously Declared Functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-->
+
+#### 宣言された関数の実装には名前空間修飾子を用いる
+
+<!--
+When providing an out of line implementation of a function in a source file, do
+not open namespace blocks in the source file. Instead, use namespace qualifiers
+to help ensure that your definition matches an existing declaration. Do this:
+
+.. code-block:: c++
+
+  // Foo.h
+  namespace llvm {
+  int foo(const char *s);
+  }
+
+  // Foo.cpp
+  #include "Foo.h"
+  using namespace llvm;
+  int llvm::foo(const char *s) {
+    // ...
+  }
+-->
+
+ソースファイルで関数のアウトオブラインを実装する場合は、ソースファイルで名前空間ブロックを開かないでください。代わりに、名前空間修飾子を使い定義が既存の宣言と一致するようにします。次のようにします。
+
+```cpp
+// Foo.h
+namespace llvm {
+int foo(const char *s);
+}
+
+// Foo.cpp
+#include "Foo.h"
+using namespace llvm;
+int llvm::foo(const char *s) {
+  // ...
+}
+```
+
+<!--
+Doing this helps to avoid bugs where the definition does not match the
+declaration from the header. For example, the following C++ code defines a new
+overload of ``llvm::foo`` instead of providing a definition for the existing
+function declared in the header:
+
+.. code-block:: c++
+
+  // Foo.cpp
+  #include "Foo.h"
+  namespace llvm {
+  int foo(char *s) { // Mismatch between "const char *" and "char *"
+  }
+  } // end namespace llvm
+-->
+
+こうすることで定義がヘッダでの宣言と一致しないというバグを避けやすくなります。たとえば、次のC++コードは``llvm::foo``についてヘッダで宣言された既存の関数の定義ではなく新たなオーバーロードを定義してしまいます。
+
+```cpp
+// Foo.cpp
+#include "Foo.h"
+namespace llvm {
+int foo(char *s) { // Mismatch between "const char *" and "char *"
+}
+} // end namespace llvm
+```
+
+<!--
+This error will not be caught until the build is nearly complete, when the
+linker fails to find a definition for any uses of the original function.  If the
+function were instead defined with a namespace qualifier, the error would have
+been caught immediately when the definition was compiled.
+
+Class method implementations must already name the class and new overloads
+cannot be introduced out of line, so this recommendation does not apply to them.
+-->
+
+このエラーはリンカが元の関数を使うための定義を探せない時、つまりビルドがほぼ終わるまで検出されません。もしこの関数が名前空間修飾子で定義されていれば、コンパイル時点で検出されたでしょう。
+
+クラスメソッドは実装にそのクラス名をつける必要があること、アウトオブラインでオーバーロードできないことから、この勧告の適用外です。
+
+<!--
 .. _early exits:
 Use Early Exits and ``continue`` to Simplify Code
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1386,7 +1562,7 @@ It is much preferred to format the code like this:
 .. code-block:: c++
 
   Value *doSomething(Instruction *I) {
-    // Terminators never need 'something' done to them because ... 
+    // Terminators never need 'something' done to them because ...
     if (I->isTerminator())
       return 0;
 
@@ -1955,14 +2131,23 @@ llvm_unreachable("Invalid radix for integer literal");
 アサーションを有効にすると、ここに到達した時点でメッセージを表示し、プログラムを終了します。アサーションが無効になっている場合（つまりリリースビルドでは）、`llvm_unreachable`はこの分岐のコード生成は省略可能だというコンパイラへのヒントとなります。コンパイラがこれをサポートしていない場合は、「abort」実装にフォールバックされます。
 
 <!--
-Neither assertions or ``llvm_unreachable`` will abort the program on a release
-build. If the error condition can be triggered by user input then the
+Use ``llvm_unreachable`` to mark a specific point in code that should never be
+reached. This is especially desirable for addressing warnings about unreachable
+branches, etc., but can be used whenever reaching a particular code path is
+unconditionally a bug (not originating from user input; see below) of some kind.
+Use of ``assert`` should always include a testable predicate (as opposed to
+``assert(false)``).
+
+If the error condition can be triggered by user input then the
 recoverable error mechanism described in :doc:`ProgrammersManual` should be
 used instead. In cases where this is not practical, ``report_fatal_error`` may
 be used.
 -->
 
-アサーションも``llvm_unreachable``も、リリースビルドではプログラムをabortしません。もしユーザーの入力によりエラー状態となりうる場合、[LLVM Programmer’s Manual](https://releases.llvm.org/10.0.0/docs/ProgrammersManual.html)にある回復可能なエラーメカニズムを使う必要があります。それが実用的でないような場合は、``report_fatal_error``を使います。
+``llvm_unreachable``を使い到達してはならないコードの一点にマークします。これは到達しない分岐などの警告への対処として望ましいですが、使えるのはそこへの到達が無条件に何らかのバグ（ユーザーからの入力ではなく。以下を参照）となる場合です。
+``assert``の使用時は常にテスト可能なpredicate（``assert(false)``とは異なります）を含める必要があります。
+
+ユーザーの入力によりエラー状態となりうる場合は、代わりに[LLVM Programmer's Manual](https://releases.llvm.org/11.0.0/docs/ProgrammersManual.html)で示す回復可能なエラーメカニズムを使う必要があります。それが実用的でない場合は、``report_fatal_error``も使えます。
 
 <!--
 Another issue is that values used only by assertions will produce an "unused
@@ -2103,7 +2288,11 @@ the switch.
 <!--
 Use range-based ``for`` loops wherever possible
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-->
 
+#### できるだけrange-based ``for``ループを使う
+
+<!--
 The introduction of range-based ``for`` loops in C++11 means that explicit
 manipulation of iterators is rarely necessary. We use range-based ``for``
 loops wherever possible for all newly added code. For example:
@@ -2113,9 +2302,10 @@ loops wherever possible for all newly added code. For example:
   BasicBlock *BB = ...
   for (Instruction &I : *BB)
     ... use I ...
--->
 
-#### できるだけrange-based ``for``ループを使う
+Usage of ``std::for_each()``/``llvm::for_each()`` functions is discouraged,
+unless the the callable object already exists.
+-->
 
 C++11でのrange-based ``for``ループの導入は、イテレータの明示的操作がめったにいらないことを意味します。私達は、すべての新規追加コードに対して、できるだけrange-based ``for``ループを使います。
 
@@ -2124,6 +2314,8 @@ BasicBlock *BB = ...
 for (Instruction &I : *BB)
   ... use I ...
 ```
+
+呼び出し可能なオブジェクトがない場合を除いて、``std::for_each()``/``llvm::for_each()``関数の使用はお勧めしません。
 
 <!--
 Don't evaluate ``end()`` every time through a loop
@@ -2209,9 +2401,9 @@ While the second form of the loop is a few extra keystrokes, we do strongly
 prefer it.
 -->
 
-さらに大きな第二の問題は、最初の形式で書くことはループ内でコンテナを変更していることを示すということです（コメントは簡単な確認という事実！）。2つ目の形式でループを書くと、コンテナが変更されないことがループ内を見ずとも分かります。
+さらに大きな第二の問題は、最初の形式で書くことはループ内でコンテナを変更していることを示すということです（コメントは簡単な確認という事実！）。2つ目の形式でループを書けば、コンテナは変更されないことがループ内を見ずとも分かります。
 
-2つ目の形式でのループは余分なキータイプはありますが、強くお勧めします。
+2つ目の形式でのループでは余分なキータイプはありますが、強くお勧めします。
 
 <!--
 ``#include <iostream>`` is Forbidden
@@ -2608,6 +2800,91 @@ faraway places in the file to tell that the function is local.
 大きなC++ファイルの途中の「`runHelper`」を見た場合、ファイルローカルかどうかはすぐに判断できません。しかしstaticと明示されていれば、ローカルなのか知るためにファイル内の遠くを見なくて済みます。
 
 <!--
+Don't Use Braces on Simple Single-Statement Bodies of if/else/loop Statements
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-->
+
+#### 単純なif/else/loop文では中括弧を使わない
+
+<!--
+When writing the body of an ``if``, ``else``, or loop statement, omit the braces to
+avoid unnecessary line noise. However, braces should be used in cases where the
+omission of braces harm the readability and maintainability of the code.
+
+Readability is harmed when a single statement is accompanied by a comment that loses
+its meaning if hoisted above the ``if`` or loop statement. Similarly, braces should
+be used when single-statement body is complex enough that it becomes difficult to see
+where the block containing the following statement began. An ``if``/``else`` chain or
+a loop is considered a single statement for this rule, and this rule applies recursively.
+This list is not exhaustive, for example, readability is also harmed if an
+``if``/``else`` chain starts using braced bodies partway through and does not continue
+on with braced bodies.
+-->
+
+``if``/``else``やループ文の本体を書く場合、不要なラインノイズを避けるために中括弧を省略します。ただし、その省略によりコードの読みやすさ（readability）と保守性（maintainability）が損われる場合は中括弧を使います。
+
+読みやすさ（readability）が損なわれるのは、単一文にコメントがついている場合です。コメントが`if`やループ文に巻き上げられると意味が失われてしまいます。本体の単一文が十分に複雑な場合も同様で、文を含むブロックの始まりが分かりづらくなります。このような場合は中括弧を使います。このルールでは``if``/``else``チェインやループも単一文とみなし、再帰的に適用します。
+このリストには穴があります。たとえば、``if``/``else``チェインを中括弧で始めたもののそれが続かない場合、読みにくくなります。
+
+<!--
+Maintainability is harmed if the body of an ``if`` ends with a (directly or indirectly)
+nested ``if`` statement with no ``else``. Braces on the outer ``if`` would help to avoid
+running into a "dangling else" situation.
+
+Note that comments should only be hoisted for loops and
+``if``, and not in ``else if`` or ``else``, where it would be unclear whether the comment
+belonged to the preceeding condition, or the ``else``.
+-->
+
+保守性（maintainability）が損なわれるのは、``if``の本体が（直接的/間接的に）ネストされた``else``なしの``if``文で終わる場合です。外側の``if``への中括弧は、「ぶら下がりelse（dangling else）」問題を避ける役に立ちます。
+
+なおコメントを巻き上げるのはループと``if``に対してのみであり、``else if``や``else``では行わないことに注意してください。コメントが前の条件と``else``どちらにかかるのか分からなくなってしまいます。
+
+<!--
+.. code-block:: c++
+
+  // Omit the braces, since the body is simple and clearly associated with the if.
+  if (isa<FunctionDecl>(D))
+    handleFunctionDecl(D);
+  else if (isa<VarDecl>(D))
+    handleVarDecl(D);
+  else {
+    // In this else case, it is necessary that we explain the situation with this
+    // surprisingly long comment, so it would be unclear without the braces whether
+    // the following statement is in the scope of the else.
+    handleOtherDecl(D);
+  }
+
+  // This should also omit braces.  The for loop contains only a single statement,
+  // so it shouldn't have braces.  The if also only contains a single statement (the
+  // for loop), so it also should omit braces.
+  if (isa<FunctionDecl>(D))
+    for (auto *A : D.attrs())
+      handleAttr(A);
+-->
+
+```cpp
+// Omit the braces, since the body is simple and clearly associated with the if.
+if (isa<FunctionDecl>(D))
+  handleFunctionDecl(D);
+else if (isa<VarDecl>(D))
+  handleVarDecl(D);
+else {
+  // In this else case, it is necessary that we explain the situation with this
+  // surprisingly long comment, so it would be unclear without the braces whether
+  // the following statement is in the scope of the else.
+  handleOtherDecl(D);
+}
+
+// This should also omit braces.  The for loop contains only a single statement,
+// so it shouldn't have braces.  The if also only contains a single statement (the
+// for loop), so it also should omit braces.
+if (isa<FunctionDecl>(D))
+  for (auto *A : D.attrs())
+    handleAttr(A);
+```
+
+<!--
 
 See Also
 ========
@@ -2641,44 +2918,44 @@ something.
 
 リンク先の更新や文言修正など内容に関わらない変更は記載省略してます。
 
-<details><summary>9.0.0 -> 10.0.0</summary>
+### 10.0.0 -> 11.0.0
 
-ベースがC++11 -> C++14に変わりました。文章が大きく整理されました。
+- 追加：機械的なソースの問題＞ソースコードのフォーマット＞エラーと警告メッセージ
+- 追加：スタイルの問題＞高位の問題＞宣言された関数の実装には名前空間修飾子を用いる
+- 文言追加：スタイルの問題＞低位の問題＞できるだけrange-based ``for``ループを使う
+　``std::for_each()``/``llvm::for_each()``の非推奨を明記
+- 追加：スタイルの問題＞細かい話＞単純なif/else/loop文では中括弧を使わない
+
+### 9.0.0 -> 10.0.0
+
+ベースがC++11→C++14に変わりました。文章が大きく整理されました。
 
 - 再構成：前書き＞言語、ライブラリ、および標準
-　C++11 -> C++14に。
+　C++11→C++14に。
 - 削除：機械的なソースの問題＞ソースコードのフォーマット＞インデントの一環
 - 内容追加：機械的なソースの問題＞言語とコンパイラの問題＞コードを読みやすくするために`auto`型推論を使う
 　ジェネリックラムダについて。
 
-</details>
-
-<details><summary>8.0.0 -> 9.0.0</summary>
+### 8.0.0 -> 9.0.0
 
 - 内容変更：機械的なソースの問題＞ソースコードのフォーマット＞ファイルのヘッダ
 　標準様式変更。ライセンスについて。
 
-</details>
-
-<details><summary>7.0.0 -> 8.0.0</summary>
+### 7.0.0 -> 8.0.0
 
 - 内容追加：機械的なソースの問題＞ソースコードのフォーマット＞コメント書式
 　C++スタイルの例外として、パラメータの場合。
 - 見出し変更と内容追加：機械的なソースの問題＞ソースコードのフォーマット＞空白（前版では「タブの代わりにスペースを使う」）
 　行末の空白について。
 
-</details>
-
-<details><summary>6.0.0 -> 7.0.0</summary>
+### 6.0.0 -> 7.0.0
 
 - 追加：機械的なソースの問題＞言語とコンパイラの問題＞等しい要素のソートによる非決定性に注意
 - 削除（下2つに分割）：スタイルの問題＞高位の問題＞公開ヘッダファイルはモジュール
 - 追加：スタイルの問題＞高位の問題＞自己完結型ヘッダ
 - 追加：スタイルの問題＞高位の問題＞ライブラリの階層化
 
-</details>
-
-<details><summary>5.0.1 -> 6.0.0</summary>
+### 5.0.1 -> 6.0.0
 
 - 追加：機械的なソースの問題＞言語とコンパイラの問題＞ポインタ順序による非決定性に注意
 - 変更：スタイルの問題＞高位の問題＞早期終了と`continue`でコードをシンプルに
@@ -2688,10 +2965,8 @@ something.
 - 追加：スタイルの問題＞低位の問題＞できるだけrange-based ``for``ループを使う
 - 内容変更：スタイルの問題＞低位の問題＞ループで毎回`end()`を評価しない
 
-</details>
-
 ## この文書（翻訳）のライセンスについて
 
 © Copyright 2003-2020, LLVM Project.
-原文は[こちらのライセンス](https://releases.llvm.org/10.0.0/LICENSE.TXT)下にあるLLVMのドキュメントに含まれているため、そちらのライセンスに従います。
+原文は[こちらのライセンス](https://releases.llvm.org/11.0.0/LICENSE.TXT)下にあるLLVMのドキュメントに含まれているため、そちらのライセンスに従います。
 翻訳者（@tenmyo）は著作権を主張しません。
