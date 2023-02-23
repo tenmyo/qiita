@@ -2,11 +2,14 @@
 id: 4bfc4e9fee4b9c86ee01
 url: https://qiita.com/tenmyo/items/4bfc4e9fee4b9c86ee01
 created_at: 2023-02-21T22:52:28+09:00
-updated_at: 2023-02-21T22:52:28+09:00
+updated_at: 2023-02-22T21:49:00+09:00
 private: false
 coediting: false
 tags:
 - Python
+- Finance
+- 投資
+- ヒストリカルデータ
 - くりっく株３６５
 team: null
 -->
@@ -119,7 +122,7 @@ def main(argv: list[str]):
                 if row.volume == 0:
                     continue
                 # 指数の名寄せ。keyが指数名、key2はリセット年など。
-                prod = row.product.split(" contract")
+                prod = row.product.split(" contrac")
                 key, key2 = PRODUCT[prod[0]], prod[1]
                 # 重複時は後年の指数（2022->2023）を優先して保持
                 if processed[key][row.date] < key2:
