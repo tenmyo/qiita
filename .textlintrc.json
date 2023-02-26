@@ -8,6 +8,9 @@
       },
       "no-doubled-joshi": {
         "allow": ["も"]
+      },
+      "max-kanji-continuous-len": {
+        "allow": ["名前空間修飾子", "無名名前空間"]
       }
     },
     "preset-jtf-style": {
