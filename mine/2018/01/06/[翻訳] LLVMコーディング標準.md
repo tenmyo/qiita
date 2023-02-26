@@ -2,7 +2,7 @@
 id: 7e4847b88e63d5769dd8
 url: https://qiita.com/tenmyo/items/7e4847b88e63d5769dd8
 created_at: 2018-01-06T15:19:28+09:00
-updated_at: 2023-02-26T12:08:59+09:00
+updated_at: 2023-02-26T12:22:15+09:00
 private: false
 coediting: false
 tags:
@@ -14,7 +14,7 @@ tags:
 team: null
 -->
 
-# [翻訳] LLVMコーディング標準(12.0.0)
+# [翻訳] LLVMコーディング標準(13.0.0)
 
 # LLVMコーディング標準
 
@@ -25,7 +25,7 @@ LLVMの一部としてリリースされているCファミリーのコンパイ
 本記事は、LLVMプロジェクトで用いられているコーディング標準（LLVM Coding Standards）のざっくり日本語訳です。
 「組織内でのコーディング規約作成の参考にしたい」「`clang-format`等のフォーマッタでLLVMスタイルが指定できるが、その内容を知りたい」といった読者を想定しています。
 
-LLVMのメジャーリリースに合わせてこの記事も更新していく予定です。現在は[12.0.0版](https://releases.llvm.org/12.0.0/docs/CodingStandards.html)に基づいています。原文の変更内容は[記事末尾](#原文の変更内容)に軽くまとめています。
+LLVMのメジャーリリースに合わせてこの記事も更新していく予定です。現在は[13.0.0版](https://releases.llvm.org/13.0.0/docs/CodingStandards.html)に基づいています。原文の変更内容は[記事末尾](#原文の変更内容)に軽くまとめています。
 
 解釈誤りや分かりづらさの指摘は、コメントや編集リクエストでいただけたら幸いです。
 
@@ -133,8 +133,8 @@ Each toolchain provides a good reference for what it accepts:
 特に記載がない限り、LLVMサブプロジェクトはC++14標準を用いて、また不要なベンダー拡張は避けて書かれています。
 
 とはいえ、ホストコンパイラとしてサポートする主要なツールチェイン[^toolchain]で使える機能に限定しています。
-（[Getting Started with the LLVM System](https://releases.llvm.org/12.0.0/docs/GettingStarted.html)の`Software`セクションも参照のこと）
-[^toolchain]: 訳注：LLVM12.0.0ではClang 3.5、Apple Clang 6.0、GCC 5.1、Visual Studio 2017。
+（[Getting Started with the LLVM System](https://releases.llvm.org/13.0.0/docs/GettingStarted.html)の`Software`セクションも参照のこと）
+[^toolchain]: 訳注：LLVM13.0.0ではClang 3.5、Apple Clang 6.0、GCC 5.1、Visual Studio 2017。
 
 どのツールチェインも、サポートする言語機能の良い資料を提供しています。
 
@@ -191,9 +191,9 @@ please consult [that section of the programmer's
 manual](https://llvm.org/docs/ProgrammersManual.html#picking-the-right-data-structure-for-a-task).
 -->
 
-I/Oストリームのようないくつかの標準機能はあえて避け、代わりにLLVMのストリームライブラリ（[raw_ostream](#raw_ostreamを使う)）を使います。これに関する詳細は[LLVM Programmer's Manual](https://releases.llvm.org/12.0.0/docs/ProgrammersManual.html)にあります。
+I/Oストリームのようないくつかの標準機能はあえて避け、代わりにLLVMのストリームライブラリ（[raw_ostream](#raw_ostreamを使う)）を使います。これに関する詳細は[LLVM Programmer's Manual](https://releases.llvm.org/13.0.0/docs/ProgrammersManual.html)にあります。
 
-LLVMのデータ構造とそのトレードオフについての詳細は、[Programmer's Manualの該当章](https://releases.llvm.org/12.0.0/docs/ProgrammersManual.html#picking-the-right-data-structure-for-a-task)を参照ください。
+LLVMのデータ構造とそのトレードオフについての詳細は、[Programmer's Manualの該当章](https://releases.llvm.org/13.0.0/docs/ProgrammersManual.html#picking-the-right-data-structure-for-a-task)を参照ください。
 
 <!--
 Guidelines for Go code
@@ -989,7 +989,7 @@ This form of RTTI is opt-in and can be
 
 コードと実行ファイルのサイズを減らすために、LLVMでは例外やRTTI（[実行時型情報](https://ja.wikipedia.org/wiki/%E5%AE%9F%E8%A1%8C%E6%99%82%E5%9E%8B%E6%83%85%E5%A0%B1)、たとえば`dynamic_cast<>`）は使いません。
 
-とはいえ、LLVMではRTTIを手で展開した [isa\<>、cast\<>、そしてdyn_cast\<>](https://releases.llvm.org/12.0.0/docs/ProgrammersManual.html#isa) のようなテンプレートを広く用います。RTTIのこの形式は、[任意のクラス](https://releases.llvm.org/12.0.0/docs/HowToSetUpLLVMStyleRTTI.html)にオプトインで追加できます。
+とはいえ、LLVMではRTTIを手で展開した [isa\<>、cast\<>、そしてdyn_cast\<>](https://releases.llvm.org/13.0.0/docs/ProgrammersManual.html#isa) のようなテンプレートを広く用います。RTTIのこの形式は、[任意のクラス](https://releases.llvm.org/13.0.0/docs/HowToSetUpLLVMStyleRTTI.html)にオプトインで追加できます。
 
 <!--
 .. _static constructor:
@@ -2163,7 +2163,7 @@ be used.
 ``llvm_unreachable``を使い到達してはならないコードの一点にマークします。これは到達しない分岐などの警告への対処として望ましいですが、使えるのはそこへの到達が無条件に何らかのバグ（ユーザーからの入力ではなく。以下を参照）となる場合です。
 ``assert``の使用時は常にテスト可能なpredicate（``assert(false)``とは異なります）を含める必要があります。
 
-ユーザーの入力によりエラー状態となりうる場合は、代わりに[LLVM Programmer's Manual](https://releases.llvm.org/12.0.0/docs/ProgrammersManual.html)で示す回復可能なエラーメカニズムを使う必要があります。それが実用的でない場合は、``report_fatal_error``も使えます。
+ユーザーの入力によりエラー状態となりうる場合は、代わりに[LLVM Programmer's Manual](https://releases.llvm.org/13.0.0/docs/ProgrammersManual.html)で示す回復可能なエラーメカニズムを使う必要があります。それが実用的でない場合は、``report_fatal_error``も使えます。
 
 <!--
 Another issue is that values used only by assertions will produce an "unused
@@ -3025,6 +3025,10 @@ something.
 ## 原文の変更内容
 
 リンク先の更新や文言修正など内容に関わらない変更は記載省略してます。
+
+### 12.0.0 -> 13.0.0
+
+変更なし。
 
 ### 11.0.0 -> 12.0.0
 
