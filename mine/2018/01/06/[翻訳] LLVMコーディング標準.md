@@ -2,7 +2,7 @@
 id: 7e4847b88e63d5769dd8
 url: https://qiita.com/tenmyo/items/7e4847b88e63d5769dd8
 created_at: 2018-01-06T15:19:28+09:00
-updated_at: 2023-02-26T12:40:44+09:00
+updated_at: 2023-02-28T10:45:53+09:00
 private: false
 coediting: false
 tags:
@@ -14,7 +14,7 @@ tags:
 team: null
 -->
 
-# [翻訳] LLVMコーディング標準(14.0.0)
+# [翻訳] LLVMコーディング標準(15.0.0)
 
 # LLVMコーディング標準
 
@@ -25,7 +25,7 @@ LLVMの一部としてリリースされているCファミリーのコンパイ
 本記事は、LLVMプロジェクトで用いられているコーディング標準（LLVM Coding Standards）のざっくり日本語訳です。
 「組織内でのコーディング規約作成の参考にしたい」「`clang-format`等のフォーマッタでLLVMスタイルが指定できるが、その内容を知りたい」といった読者を想定しています。
 
-LLVMのメジャーリリースに合わせてこの記事も更新していく予定です。現在は[14.0.0版](https://releases.llvm.org/14.0.0/docs/CodingStandards.html)に基づいています。原文の変更内容は[記事末尾](#原文の変更内容)に軽くまとめています。
+LLVMのメジャーリリースに合わせてこの記事も更新していく予定です。現在は[15.0.0版](https://releases.llvm.org/15.0.0/docs/CodingStandards.html)に基づいています。原文の変更内容は[記事末尾](#原文の変更内容)に軽くまとめています。
 
 解釈誤りや分かりづらさの指摘は、コメントや編集リクエストでいただけたら幸いです。
 
@@ -133,8 +133,8 @@ Each toolchain provides a good reference for what it accepts:
 特に記載がない限り、LLVMサブプロジェクトはC++14標準を用いて、また不要なベンダー拡張は避けて書かれています。
 
 とはいえ、ホストコンパイラとしてサポートする主要なツールチェイン[^toolchain]で使える機能に限定しています。
-（[Getting Started with the LLVM System](https://releases.llvm.org/14.0.0/docs/GettingStarted.html)の`Software`セクションも参照のこと）
-[^toolchain]: 訳注：LLVM14.0.0ではClang 3.5、Apple Clang 6.0、GCC 5.1、Visual Studio 2019。
+（[Getting Started with the LLVM System](https://releases.llvm.org/15.0.0/docs/GettingStarted.html)の`Software`セクションも参照のこと）
+[^toolchain]: 訳注：LLVM15.0.0ではClang 5.0、Apple Clang 9.3、GCC 7.1、Visual Studio 2019 16.7。
 
 どのツールチェインも、サポートする言語機能の良い資料を提供しています。
 
@@ -191,9 +191,9 @@ please consult `that section of the programmer's manual
 <https://llvm.org/docs/ProgrammersManual.html#picking-the-right-data-structure-for-a-task>`_.
 -->
 
-I/Oストリームのようないくつかの標準機能はあえて避け、代わりにLLVMのストリームライブラリ（[raw_ostream](#raw_ostreamを使う)）を使います。これに関する詳細は[LLVM Programmer's Manual](https://releases.llvm.org/14.0.0/docs/ProgrammersManual.html)にあります。
+I/Oストリームのようないくつかの標準機能はあえて避け、代わりにLLVMのストリームライブラリ（[raw_ostream](#raw_ostreamを使う)）を使います。これに関する詳細は[LLVM Programmer's Manual](https://releases.llvm.org/15.0.0/docs/ProgrammersManual.html)にあります。
 
-LLVMのデータ構造とそのトレードオフについての詳細は、[Programmer's Manualの該当章](https://releases.llvm.org/14.0.0/docs/ProgrammersManual.html#picking-the-right-data-structure-for-a-task)を参照ください。
+LLVMのデータ構造とそのトレードオフについての詳細は、[Programmer's Manualの該当章](https://releases.llvm.org/15.0.0/docs/ProgrammersManual.html#picking-the-right-data-structure-for-a-task)を参照ください。
 
 <!--
 Guidelines for Go code
@@ -989,7 +989,7 @@ This form of RTTI is opt-in and can be
 
 コードと実行ファイルのサイズを減らすために、LLVMでは例外やRTTI（[実行時型情報](https://ja.wikipedia.org/wiki/%E5%AE%9F%E8%A1%8C%E6%99%82%E5%9E%8B%E6%83%85%E5%A0%B1)、たとえば`dynamic_cast<>`）は使いません。
 
-とはいえ、LLVMではRTTIを手で展開した [isa\<>、cast\<>、そしてdyn_cast\<>](https://releases.llvm.org/14.0.0/docs/ProgrammersManual.html#isa) のようなテンプレートを広く用います。RTTIのこの形式は、[任意のクラス](https://releases.llvm.org/14.0.0/docs/HowToSetUpLLVMStyleRTTI.html)にオプトインで追加できます。
+とはいえ、LLVMではRTTIを手で展開した [isa\<>、cast\<>、そしてdyn_cast\<>](https://releases.llvm.org/15.0.0/docs/ProgrammersManual.html#isa) のようなテンプレートを広く用います。RTTIのこの形式は、[任意のクラス](https://releases.llvm.org/15.0.0/docs/HowToSetUpLLVMStyleRTTI.html)にオプトインで追加できます。
 
 <!--
 .. _static constructor:
@@ -2163,7 +2163,7 @@ be used.
 ``llvm_unreachable``を使い到達してはならないコードの一点にマークします。これは到達しない分岐などの警告への対処として望ましいですが、使えるのはそこへの到達が無条件に何らかのバグ（ユーザーからの入力ではなく。以下を参照）となる場合です。
 ``assert``の使用時は常にテスト可能なpredicate（``assert(false)``とは異なります）を含める必要があります。
 
-ユーザーの入力によりエラー状態となりうる場合は、代わりに[LLVM Programmer's Manual](https://releases.llvm.org/14.0.0/docs/ProgrammersManual.html)で示す回復可能なエラーメカニズムを使う必要があります。それが実用的でない場合は、``report_fatal_error``も使えます。
+ユーザーの入力によりエラー状態となりうる場合は、代わりに[LLVM Programmer's Manual](https://releases.llvm.org/15.0.0/docs/ProgrammersManual.html)で示す回復可能なエラーメカニズムを使う必要があります。それが実用的でない場合は、``report_fatal_error``も使えます。
 
 <!--
 Another issue is that values used only by assertions will produce an "unused
@@ -2320,7 +2320,7 @@ loops wherever possible for all newly added code. For example:
     ... use I ...
 
 Usage of ``std::for_each()``/``llvm::for_each()`` functions is discouraged,
-unless the the callable object already exists.
+unless the callable object already exists.
 -->
 
 C++11でのrange-based ``for``ループの導入は、イテレータの明示的操作がめったにいらないことを意味します。私たちは、すべての新規追加コードに対して、できるだけrange-based ``for``ループを使います。
@@ -2823,28 +2823,30 @@ Don't Use Braces on Simple Single-Statement Bodies of if/else/loop Statements
 #### 単純なif/else/loop文では中括弧を使わない
 
 <!--
-When writing the body of an ``if``, ``else``, or loop statement, we prefer to
-omit the braces to avoid unnecessary line noise. However, braces should be used
-in cases where the omission of braces harm the readability and maintainability
-of the code.
+When writing the body of an ``if``, ``else``, or for/while loop statement, we
+prefer to omit the braces to avoid unnecessary line noise. However, braces
+should be used in cases where the omission of braces harm the readability and
+maintainability of the code.
 
 We consider that readability is harmed when omitting the brace in the presence
 of a single statement that is accompanied by a comment (assuming the comment
 can't be hoisted above the ``if`` or loop statement, see below).
+
 Similarly, braces should be used when a single-statement body is complex enough
 that it becomes difficult to see where the block containing the following
 statement began. An ``if``/``else`` chain or a loop is considered a single
 statement for this rule, and this rule applies recursively.
 -->
 
-``if``/``else``やループ文の本体を書く場合、不要なラインノイズを避けるために中括弧を省くことが望ましいです。ただし、その省略によりコードの読みやすさ（readability）と保守性（maintainability）が損われる場合は中括弧を使わなくてはなりません。
+``if``/``else``やfor/whileループ文の本体を書く場合、不要なラインノイズを避けるために中括弧を省くことが望ましいです。ただし、その省略によりコードの読みやすさ（readability）と保守性（maintainability）が損われる場合は中括弧を使わなくてはなりません。
 
-読みやすさ（readability）が損なわれるのは、単一文にコメントがついている場合と考えられます（コメントを``if``やループ文の前に巻き上げられないと仮定します。以下も参照）。本体の単一文が十分に複雑な場合も同様で、文を含むブロックの始まりが分かりづらくなります。このような場合は中括弧を使います。このルールでは``if``/``else``チェインやループも単一文とみなし、再帰的に適用します。
+読みやすさ（readability）が損なわれるのは、単一文にコメントがついている場合と考えられます（コメントを``if``やループ文の前に巻き上げられないと仮定します。以下も参照）。
+本体の単一文が十分に複雑な場合も同様で、文を含むブロックの始まりが分かりづらくなります。このような場合は中括弧を使います。このルールでは``if``/``else``チェインやループも単一文とみなし、再帰的に適用します。
 
 <!--
-This list is not exhaustive, for example, readability is also harmed if an
+This list is not exhaustive. For example, readability is also harmed if an
 ``if``/``else`` chain does not use braced bodies for either all or none of its
-members, with complex conditionals, deep nesting, etc. The examples below
+members, or has complex conditionals, deep nesting, etc. The examples below
 intend to provide some guidelines.
 
 Maintainability is harmed if the body of an ``if`` ends with a (directly or
@@ -2858,7 +2860,8 @@ would help to avoid running into a "dangling else" situation.
 
 <!--
 .. code-block:: c++
-  // Omit the braces, since the body is simple and clearly associated with the if.
+  // Omit the braces since the body is simple and clearly associated with the
+  // `if`.
   if (isa<FunctionDecl>(D))
     handleFunctionDecl(D);
   else if (isa<VarDecl>(D))
@@ -2870,51 +2873,59 @@ would help to avoid running into a "dangling else" situation.
     // comment, so it would be unclear without the braces whether the following
     // statement is in the scope of the `if`.
     // Because the condition is documented, we can't really hoist this
-    // comment that applies to the body above the if.
+    // comment that applies to the body above the `if`.
     handleOtherDecl(D);
   }
 
-  // Use braces on the outer `if` to avoid a potential dangling else situation.
+  // Use braces on the outer `if` to avoid a potential dangling `else`
+  // situation.
   if (isa<VarDecl>(D)) {
-    for (auto *A : D.attrs())
-      if (shouldProcessAttr(A))
-        handleAttr(A);
+    if (shouldProcessAttr(A))
+      handleAttr(A);
   }
 
-  // Use braces for the `if` block to keep it uniform with the else block.
+  // Use braces for the `if` block to keep it uniform with the `else` block.
   if (isa<FunctionDecl>(D)) {
     handleFunctionDecl(D);
   } else {
-    // In this else case, it is necessary that we explain the situation with this
-    // surprisingly long comment, so it would be unclear without the braces whether
-    // the following statement is in the scope of the `if`.
+    // In this `else` case, it is necessary that we explain the situation with
+    // this surprisingly long comment, so it would be unclear without the braces
+    // whether the following statement is in the scope of the `if`.
     handleOtherDecl(D);
   }
 
-  // This should also omit braces.  The `for` loop contains only a single statement,
-  // so it shouldn't have braces.  The `if` also only contains a single simple
-  // statement (the for loop), so it also should omit braces.
+  // This should also omit braces.  The `for` loop contains only a single
+  // statement, so it shouldn't have braces.  The `if` also only contains a
+  // single simple statement (the `for` loop), so it also should omit braces.
   if (isa<FunctionDecl>(D))
     for (auto *A : D.attrs())
       handleAttr(A);
 
+  // Use braces for a `do-while` loop and its enclosing statement.
+  if (Tok->is(tok::l_brace)) {
+    do {
+      Tok = Tok->Next;
+    } while (Tok);
+  }
+
   // Use braces for the outer `if` since the nested `for` is braced.
   if (isa<FunctionDecl>(D)) {
     for (auto *A : D.attrs()) {
-      // In this for loop body, it is necessary that we explain the situation
+      // In this `for` loop body, it is necessary that we explain the situation
       // with this surprisingly long comment, forcing braces on the `for` block.
       handleAttr(A);
     }
   }
 
-  // Use braces on the outer block because there are more than two levels of nesting.
+  // Use braces on the outer block because there are more than two levels of
+  // nesting.
   if (isa<FunctionDecl>(D)) {
     for (auto *A : D.attrs())
       for (ssize_t i : llvm::seq<ssize_t>(count))
-         handleAttrOnDecl(D, A, i);
+        handleAttrOnDecl(D, A, i);
   }
 
-  // Use braces on the outer block because of a nested `if`, otherwise the
+  // Use braces on the outer block because of a nested `if`; otherwise the
   // compiler would warn: `add explicit braces to avoid dangling else`
   if (auto *D = dyn_cast<FunctionDecl>(D)) {
     if (shouldProcess(D))
@@ -2925,7 +2936,7 @@ would help to avoid running into a "dangling else" situation.
 -->
 
 ```cpp
-// 中括弧を省きます。本体は単純で、ifとの関係も明確です。
+// 中括弧を省きます。本体は単純で、`if`との関係も明確です。
 if (isa<FunctionDecl>(D))
   handleFunctionDecl(D);
 else if (isa<VarDecl>(D))
@@ -2937,38 +2948,44 @@ if (isa<VarDecl>(D)) {
   // この驚くほど長いコメントで状況を説明する必要がありますが、
   // 中括弧がないと次の文が`if`スコープ内かどうか分かりません。
   // 既に条件のコメントがあるため、本体に関するこのコメントを
-  // ifの前に巻き上げることはできません。
+  // `if`の前に巻き上げることはできません。
   handleOtherDecl(D);
 }
 
-// 外側の`if`に中括弧を使い、ぶら下がりelseの可能性を避けます。
+// 外側の`if`に中括弧を使い、ぶら下がり`else`の可能性を避けます。
 if (isa<VarDecl>(D)) {
-  for (auto *A : D.attrs())
-    if (shouldProcessAttr(A))
-      handleAttr(A);
+  if (shouldProcessAttr(A))
+    handleAttr(A);
 }
 
-// `if`ブロックに中括弧を使い、elseブロックと同じ形を保ちます。
+// `if`ブロックに中括弧を使い、`else`ブロックと同じ形を保ちます。
 if (isa<FunctionDecl>(D)) {
   handleFunctionDecl(D);
 } else {
-  // このelseの場合も、この驚くほど長いコメントで状況を
+  // この`else`の場合も、この驚くほど長いコメントで状況を
   // 説明する必要がありますが、中括弧がないと次の文が
   // `if`スコープ内かどうか分かりません。
   handleOtherDecl(D);
 }
 
 // これは中括弧を省略するべきです。`for`ループは単一文しか含まないため、
-// 中括弧を持つべきではありません。`if`も単一文（ループ）しか含まないので、
+// 中括弧を持つべきではありません。`if`も単一文（`for`ループ）しか含まないので、
 // 同じく中括弧は省くべきです。
 if (isa<FunctionDecl>(D))
   for (auto *A : D.attrs())
     handleAttr(A);
 
+// `do-while`ループとそれを囲む文には中括弧を使います。
+if (Tok->is(tok::l_brace)) {
+  do {
+    Tok = Tok->Next;
+  } while (Tok);
+}
+
 // ネストされた`for`が囲われているため、外側の`if`も囲みます。
 if (isa<FunctionDecl>(D)) {
   for (auto *A : D.attrs()) {
-    // このループ本文内では、この驚くほど長いコメントで状況を
+    // この`for`ループ本文内では、この驚くほど長いコメントで状況を
     // 説明し、`for`ブロックに中括弧を強制する必要があります。
     handleAttr(A);
   }
@@ -2978,7 +2995,7 @@ if (isa<FunctionDecl>(D)) {
 if (isa<FunctionDecl>(D)) {
   for (auto *A : D.attrs())
     for (ssize_t i : llvm::seq<ssize_t>(count))
-        handleAttrOnDecl(D, A, i);
+      handleAttrOnDecl(D, A, i);
 }
 
 // ネストされた`if`の外側のブロックには中括弧を使います。
@@ -3025,6 +3042,16 @@ something.
 ## 原文の変更内容
 
 リンク先の更新や文言修正など内容に関わらない変更は記載省略してます。
+
+### 14.0.0 -> 15.0.0
+
+- 例拡充：スタイルの問題＞細かい話＞単純なif/else/loop文では中括弧を使わない
+　`do-while`ループについて
+
+コーディング標準としては記載がありませんが、サポートするツールチェインが変わっています。
+```Clang 3.5、Apple Clang 6.0、GCC 5.1、Visual Studio 2019```
+↓
+```Clang 5.0、Apple Clang 9.3、GCC 7.1、Visual Studio 2019 16.7```
 
 ### 13.0.0 -> 14.0.0
 
@@ -3089,5 +3116,5 @@ something.
 ## この文書（翻訳）のライセンスについて
 
 © Copyright 2003-2022, LLVM Project.
-原文は[こちらのライセンス](https://releases.llvm.org/14.0.0/LICENSE.TXT)下にあるLLVMのドキュメントに含まれているため、そちらのライセンスに従います。
+原文は[こちらのライセンス](https://github.com/llvm/llvm-project/blob/llvmorg-15.0.0/llvm/LICENSE.TXT)下にあるLLVMのドキュメントに含まれているため、そちらのライセンスに従います。
 翻訳者（@tenmyo）は著作権を主張しません。
